@@ -1,12 +1,19 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Domain", "OrgMembershipService.Domain\OrgMembershipService.Domain.csproj", "{EC111981-65BF-453C-A7CA-E5795144F90A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Domain", "src\OrgMembershipService.Domain\OrgMembershipService.Domain.csproj", "{EC111981-65BF-453C-A7CA-E5795144F90A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Infrastructure", "OrgMembershipService.Infrastructure\OrgMembershipService.Infrastructure.csproj", "{49435D6E-6E4D-4AF6-9C1A-FC9AE2497EF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Infrastructure", "src\OrgMembershipService.Infrastructure\OrgMembershipService.Infrastructure.csproj", "{49435D6E-6E4D-4AF6-9C1A-FC9AE2497EF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Application", "OrgMembershipService.Application\OrgMembershipService.Application.csproj", "{C6FCC1B8-E45B-4812-8BEB-090B6154EBB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Application", "src\OrgMembershipService.Application\OrgMembershipService.Application.csproj", "{C6FCC1B8-E45B-4812-8BEB-090B6154EBB9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Api", "OrgMembershipService.Api\OrgMembershipService.Api.csproj", "{C4E8BB85-96BA-4C28-84B8-C36E62B9D016}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Api", "src\OrgMembershipService.Api\OrgMembershipService.Api.csproj", "{C4E8BB85-96BA-4C28-84B8-C36E62B9D016}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{997DE7CD-9AB9-420E-82E6-614711799B5C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1ED559C2-B90E-4803-99DD-E439E2BB0BB8}"
+	ProjectSection(SolutionItems) = preProject
+		docs\AGENTS.md = docs\AGENTS.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,5 +37,11 @@ Global
 		{C4E8BB85-96BA-4C28-84B8-C36E62B9D016}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4E8BB85-96BA-4C28-84B8-C36E62B9D016}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4E8BB85-96BA-4C28-84B8-C36E62B9D016}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C4E8BB85-96BA-4C28-84B8-C36E62B9D016} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
+		{C6FCC1B8-E45B-4812-8BEB-090B6154EBB9} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
+		{EC111981-65BF-453C-A7CA-E5795144F90A} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
+		{49435D6E-6E4D-4AF6-9C1A-FC9AE2497EF6} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
 	EndGlobalSection
 EndGlobal
