@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{997DE7CD-9AB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1ED559C2-B90E-4803-99DD-E439E2BB0BB8}"
 	ProjectSection(SolutionItems) = preProject
-		docs\AGENTS.md = docs\AGENTS.md
+		docs\Context.md = docs\Context.md
 	EndProjectSection
 EndProject
 Global
