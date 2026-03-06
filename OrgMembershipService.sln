@@ -4,7 +4,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Domain
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Infrastructure", "src\OrgMembershipService.Infrastructure\OrgMembershipService.Infrastructure.csproj", "{49435D6E-6E4D-4AF6-9C1A-FC9AE2497EF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Application", "src\OrgMembershipService.Application\OrgMembershipService.Application.csproj", "{C6FCC1B8-E45B-4812-8BEB-090B6154EBB9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.UseCases", "src\OrgMembershipService.UseCases\OrgMembershipService.UseCases.csproj", "{C6FCC1B8-E45B-4812-8BEB-090B6154EBB9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OrgMembershipService.Api", "src\OrgMembershipService.Api\OrgMembershipService.Api.csproj", "{C4E8BB85-96BA-4C28-84B8-C36E62B9D016}"
 EndProject
