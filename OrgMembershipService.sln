@@ -12,7 +12,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{997DE7CD-9AB
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{1ED559C2-B90E-4803-99DD-E439E2BB0BB8}"
 	ProjectSection(SolutionItems) = preProject
-		docs\Context.md = docs\Context.md
+		docs\OrgMembershipContext.md = docs\OrgMembershipContext.md
+		docs\SystemContext.md = docs\SystemContext.md
+		docs\RolesPermissionsMatrix.md = docs\RolesPermissionsMatrix.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{9686647D-0C20-4350-8B1D-0745F104D434}"
