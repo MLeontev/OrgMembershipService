@@ -12,7 +12,8 @@ var app = builder.Build();
 
 app.MapOpenApi();
 
-app.ApplyMigrations();
+await app.ApplyMigrations();
+await app.SeedDatabase();
 
 app.UseHttpsRedirection();
 
