@@ -1,13 +1,10 @@
 using Microsoft.EntityFrameworkCore;
-using OrgMembershipService.Application.Database;
 using OrgMembershipService.Domain.Entities;
 
-namespace OrgMembershipService.Infrastructure.Database;
+namespace OrgMembershipService.Application.Database;
 
-public class AppDbContext : DbContext, IDbContext
+public interface IDbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
-    
     public DbSet<User> Users { get; set; }
     public DbSet<Membership> Memberships { get; set; }
     public DbSet<MembershipRole> MembershipRoles { get; set; }
@@ -18,7 +15,6 @@ public class AppDbContext : DbContext, IDbContext
 
     public DbSet<Invitation> Invitations { get; set; }
     public DbSet<InvitationRole> InvitationRoles { get; set; }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder) => 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+    
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
