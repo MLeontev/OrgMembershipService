@@ -1,8 +1,9 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OrgMembershipService.Application.Users.Commands;
+using OrgMembershipService.Application.Features.Users.Commands;
 
-namespace OrgMembershipService.Api.Controllers;
+namespace OrgMembershipService.Api.Controllers.Public;
 
 [ApiController]
 [Route("api/[controller]")]

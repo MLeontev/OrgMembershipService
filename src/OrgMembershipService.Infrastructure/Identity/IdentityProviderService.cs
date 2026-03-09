@@ -1,6 +1,6 @@
 using System.Net;
 using OrgMembershipService.Application;
-using OrgMembershipService.Application.Users.Services;
+using OrgMembershipService.Application.Abstractions;
 using OrgMembershipService.Domain.Exceptions;
 
 namespace OrgMembershipService.Infrastructure.Identity;

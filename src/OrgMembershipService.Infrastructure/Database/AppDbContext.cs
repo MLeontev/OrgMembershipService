@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using OrgMembershipService.Application.Database;
+using OrgMembershipService.Application.Abstractions;
 using OrgMembershipService.Domain.Entities;
 
 namespace OrgMembershipService.Infrastructure.Database;

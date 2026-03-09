@@ -2,8 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using OrgMembershipService.Application.Database;
-using OrgMembershipService.Application.Users.Services;
+using OrgMembershipService.Application.Abstractions;
 using OrgMembershipService.Infrastructure.Database;
 using OrgMembershipService.Infrastructure.Identity;
 
@@ -32,6 +31,15 @@ public static class DependencyInjection
                 httpClient.BaseAddress = new Uri(keycloakOptions.AdminUrl);
             })
             .AddHttpMessageHandler<KeycloakAuthDelegatingHandler>();
+        
+        services.AddAuthorization();
+
+        services.AddAuthentication().AddJwtBearer(options =>
+        {
+            configuration.GetSection("Authentication").Bind(options);
+        });
+
+        services.AddHttpContextAccessor();
         
         return services;
     }

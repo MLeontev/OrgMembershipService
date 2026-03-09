@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OrgMembershipService.Domain.Entities;
 
-namespace OrgMembershipService.Application.Database;
+namespace OrgMembershipService.Application.Abstractions;
 
 public interface IDbContext
 {

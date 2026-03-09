@@ -1,10 +1,9 @@
 using FluentValidation;
 using MediatR;
-using OrgMembershipService.Application.Database;
-using OrgMembershipService.Application.Users.Services;
+using OrgMembershipService.Application.Abstractions;
 using OrgMembershipService.Domain.Entities;
 
-namespace OrgMembershipService.Application.Users.Commands;
+namespace OrgMembershipService.Application.Features.Users.Commands;
 
 public record RegisterUserCommand(
     string Email, 
@@ -27,14 +26,11 @@ internal class RegisterUserCommandValidator : AbstractValidator<RegisterUserComm
 }
 
 internal class RegisterUserCommandHandler(
-    IValidator<RegisterUserCommand> validator,
     IDbContext dbContext, 
     IIdentityProviderService identityProviderService) : IRequestHandler<RegisterUserCommand, Guid>
 {
     public async Task<Guid> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        await validator.ValidateAndThrowAsync(request, cancellationToken);
-        
         var identityId = await identityProviderService.RegisterUserAsync(
             new UserModel(request.Email, request.Password, request.FirstName, request.LastName),
             cancellationToken);
