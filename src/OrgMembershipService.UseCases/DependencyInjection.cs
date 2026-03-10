@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using OrgMembershipService.Application.Behaviors;
+using OrgMembershipService.Application.Services;
 
 namespace OrgMembershipService.Application;
 
@@ -16,6 +17,8 @@ public static class DependencyInjection
         });
         
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
+        
+        services.AddScoped<IUserIdentityResolver, UserIdentityResolver>();
 
         return services;
     }

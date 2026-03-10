@@ -1,20 +1,25 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrgMembershipService.Application.Abstractions;
+using OrgMembershipService.Application.Services;
 using OrgMembershipService.Domain.Entities;
 using OrgMembershipService.Domain.Exceptions;
 
 namespace OrgMembershipService.Application.Features.Organizations.Commands;
 
-public record CreateOrganizationOwnerCommand(Guid OrganizationId, Guid OwnerUserId) : IRequest;
+public record CreateOrganizationOwnerCommand(Guid OrganizationId, string OwnerIdentityId) : IRequest;
 
-internal class CreateOrganizationOwnerCommandHandler(IDbContext dbContext) : IRequestHandler<CreateOrganizationOwnerCommand>
+internal class CreateOrganizationOwnerCommandHandler(
+    IDbContext dbContext,
+    IUserIdentityResolver identityResolver) : IRequestHandler<CreateOrganizationOwnerCommand>
 {
     public async Task Handle(CreateOrganizationOwnerCommand request, CancellationToken cancellationToken)
     {
+        var userId = await identityResolver.ResolveUserIdAsync(request.OwnerIdentityId, cancellationToken);
+        
         var userExists = await dbContext.Users
             .AsNoTracking()
-            .AnyAsync(x => x.Id == request.OwnerUserId, cancellationToken);
+            .AnyAsync(x => x.Id == userId, cancellationToken);
         
         if (!userExists)
             throw new NotFoundException("USER_NOT_FOUND", "Пользователь не найден");
@@ -22,7 +27,7 @@ internal class CreateOrganizationOwnerCommandHandler(IDbContext dbContext) : IRe
         var membershipExists = await dbContext.Memberships
             .AsNoTracking()
             .AnyAsync(
-                x => x.OrganizationId == request.OrganizationId && x.UserId == request.OwnerUserId,
+                x => x.OrganizationId == request.OrganizationId && x.UserId == userId,
                 cancellationToken);
 
         if (membershipExists)
@@ -37,7 +42,7 @@ internal class CreateOrganizationOwnerCommandHandler(IDbContext dbContext) : IRe
         if (ownerRole is null)
             throw new NotFoundException("ORG_OWNER_ROLE_NOT_FOUND", "Роль владельца не найдена");
         
-        var membership = Membership.Create(request.OrganizationId, request.OwnerUserId);
+        var membership = Membership.Create(request.OrganizationId, userId);
         membership.AssignRole(ownerRole.Id, null);
         
         dbContext.Memberships.Add(membership);

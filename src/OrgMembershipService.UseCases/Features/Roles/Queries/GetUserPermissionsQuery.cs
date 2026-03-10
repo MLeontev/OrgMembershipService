@@ -1,23 +1,28 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrgMembershipService.Application.Abstractions;
+using OrgMembershipService.Application.Services;
 using OrgMembershipService.Domain.Entities;
 
 namespace OrgMembershipService.Application.Features.Roles.Queries;
 
-public record GetUserPermissionsQuery(Guid OrganizationId, Guid UserId) : IRequest<UserPermissionsDto>;
+public record GetUserPermissionsQuery(Guid OrganizationId, string IdentityId) : IRequest<UserPermissionsDto>;
 
 public record UserPermissionsDto(IReadOnlyCollection<string> Permissions);
 
-internal class GetUserPermissionsQueryHandler(IDbContext dbContext) : IRequestHandler<GetUserPermissionsQuery, UserPermissionsDto>
+internal class GetUserPermissionsQueryHandler(
+    IDbContext dbContext,
+    IUserIdentityResolver identityResolver) : IRequestHandler<GetUserPermissionsQuery, UserPermissionsDto>
 {
     public async Task<UserPermissionsDto> Handle(GetUserPermissionsQuery request, CancellationToken cancellationToken)
     {
+        var userId = await identityResolver.ResolveUserIdAsync(request.IdentityId, cancellationToken);
+        
         var permissions = await dbContext.MembershipRoles
             .AsNoTracking()
             .Where(x =>
                 x.Membership.OrganizationId == request.OrganizationId &&
-                x.Membership.UserId == request.UserId &&
+                x.Membership.UserId == userId &&
                 x.Membership.Status == MembershipStatus.Active)
             .SelectMany(x => x.Role.RolePermissions)
             .Select(x => x.Permission.Code)

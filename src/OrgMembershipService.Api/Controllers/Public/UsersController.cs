@@ -12,7 +12,7 @@ public class UsersController(ISender sender) : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var userId = await sender.Send(request, cancellationToken);
-        return Ok(userId);
+        var response = await sender.Send(request, cancellationToken);
+        return Ok(response);
     }
 }

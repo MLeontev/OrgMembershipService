@@ -10,7 +10,9 @@ public record RegisterUserCommand(
     string Password, 
     string FirstName, 
     string LastName, 
-    string? Patronymic) : IRequest<Guid>;
+    string? Patronymic) : IRequest<RegisterUserDto>;
+
+public record RegisterUserDto(Guid UserId, string IdentityId);
 
 internal class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>
 {
@@ -27,9 +29,9 @@ internal class RegisterUserCommandValidator : AbstractValidator<RegisterUserComm
 
 internal class RegisterUserCommandHandler(
     IDbContext dbContext, 
-    IIdentityProviderService identityProviderService) : IRequestHandler<RegisterUserCommand, Guid>
+    IIdentityProviderService identityProviderService) : IRequestHandler<RegisterUserCommand, RegisterUserDto>
 {
-    public async Task<Guid> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterUserDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
         var identityId = await identityProviderService.RegisterUserAsync(
             new UserModel(request.Email, request.Password, request.FirstName, request.LastName),
@@ -40,6 +42,6 @@ internal class RegisterUserCommandHandler(
         dbContext.Users.Add(user);
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        return user.Id;
+        return new RegisterUserDto(user.Id, identityId);
     }
 }

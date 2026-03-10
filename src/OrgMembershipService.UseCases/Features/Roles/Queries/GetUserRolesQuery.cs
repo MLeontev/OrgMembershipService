@@ -1,22 +1,27 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrgMembershipService.Application.Abstractions;
+using OrgMembershipService.Application.Services;
 
 namespace OrgMembershipService.Application.Features.Roles.Queries;
 
-public record GetUserRolesQuery(Guid OrganizationId, Guid UserId) : IRequest<UserRolesDto>;
+public record GetUserRolesQuery(Guid OrganizationId, string IdentityId) : IRequest<UserRolesDto>;
 
 public record UserRolesDto(IReadOnlyCollection<string> Roles);
 
-internal class GetUserRolesQueryHandler(IDbContext dbContext) : IRequestHandler<GetUserRolesQuery, UserRolesDto>
+internal class GetUserRolesQueryHandler(
+    IDbContext dbContext,
+    IUserIdentityResolver identityResolver) : IRequestHandler<GetUserRolesQuery, UserRolesDto>
 {
     public async Task<UserRolesDto> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
     {
+        var userId = await identityResolver.ResolveUserIdAsync(request.IdentityId, cancellationToken);
+        
         var roles = await dbContext.MembershipRoles
             .AsNoTracking()
             .Where(x =>
                 x.Membership.OrganizationId == request.OrganizationId &&
-                x.Membership.UserId == request.UserId &&
+                x.Membership.UserId == userId &&
                 x.Membership.Status == Domain.Entities.MembershipStatus.Active)
             .Select(x => x.Role.Code)
             .Distinct()

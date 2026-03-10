@@ -12,6 +12,8 @@
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - booking-network
         
   db:
     image: postgres:latest
@@ -29,6 +31,8 @@
       timeout: 5s
       retries: 5
     restart: always
+    networks:
+      - booking-network
     
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -41,7 +45,13 @@
     volumes:
       - ./infra/keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json:ro
       - keycloak-data:/opt/keycloak/data
+    networks:
+      - booking-network
 
 volumes:
   pg-data:
   keycloak-data:
+
+networks:
+  booking-network:
+    external: true
