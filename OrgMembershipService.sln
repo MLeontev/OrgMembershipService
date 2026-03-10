@@ -22,6 +22,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		docker-compose.yml = docker-compose.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{C9691348-8857-474C-87FB-1D5EAFB6A270}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "keycloak", "keycloak", "{FAD2F92F-9D2D-4B88-9CA4-DF7BCA2C20E9}"
+	ProjectSection(SolutionItems) = preProject
+		infra\keycloak\realm-export.json = infra\keycloak\realm-export.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,5 +57,6 @@ Global
 		{C6FCC1B8-E45B-4812-8BEB-090B6154EBB9} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
 		{EC111981-65BF-453C-A7CA-E5795144F90A} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
 		{49435D6E-6E4D-4AF6-9C1A-FC9AE2497EF6} = {997DE7CD-9AB9-420E-82E6-614711799B5C}
+		{FAD2F92F-9D2D-4B88-9CA4-DF7BCA2C20E9} = {C9691348-8857-474C-87FB-1D5EAFB6A270}
 	EndGlobalSection
 EndGlobal
