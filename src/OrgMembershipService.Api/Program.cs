@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Diagnostics;
 using OrgMembershipService.Api.Extensions;
+using OrgMembershipService.Api.Middlewares;
 using OrgMembershipService.Application;
 using OrgMembershipService.Infrastructure;
 
@@ -14,6 +16,8 @@ builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddUseCases();
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
