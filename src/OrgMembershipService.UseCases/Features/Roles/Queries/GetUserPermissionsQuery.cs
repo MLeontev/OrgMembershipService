@@ -9,7 +9,7 @@ public record GetUserPermissionsQuery(Guid OrganizationId, Guid UserId) : IReque
 
 public record UserPermissionsDto(IReadOnlyCollection<string> Permissions);
 
-internal class GetUserPermissionsHandler(IDbContext dbContext) : IRequestHandler<GetUserPermissionsQuery, UserPermissionsDto>
+internal class GetUserPermissionsQueryHandler(IDbContext dbContext) : IRequestHandler<GetUserPermissionsQuery, UserPermissionsDto>
 {
     public async Task<UserPermissionsDto> Handle(GetUserPermissionsQuery request, CancellationToken cancellationToken)
     {

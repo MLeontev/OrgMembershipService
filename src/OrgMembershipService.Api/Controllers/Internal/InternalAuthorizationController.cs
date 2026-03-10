@@ -8,7 +8,7 @@ namespace OrgMembershipService.Api.Controllers.Internal;
 [Route("api/internal/authorization")]
 public class InternalAuthorizationController(ISender sender) : ControllerBase
 {
-    [HttpPost]
+    [HttpPost("check")]
     public async Task<IActionResult> Check([FromBody] CheckPermissionQuery request, CancellationToken cancellationToken)
     {
         var result = await sender.Send(request, cancellationToken);

@@ -12,7 +12,7 @@ public record CheckPermissionQuery(
     
 public record CheckPermissionDto(bool Allowed);
 
-internal class CheckPermissionHandler(IDbContext dbContext) : IRequestHandler<CheckPermissionQuery, CheckPermissionDto>
+internal class CheckPermissionQueryHandler(IDbContext dbContext) : IRequestHandler<CheckPermissionQuery, CheckPermissionDto>
 {
     public async Task<CheckPermissionDto> Handle(CheckPermissionQuery request, CancellationToken cancellationToken)
     {

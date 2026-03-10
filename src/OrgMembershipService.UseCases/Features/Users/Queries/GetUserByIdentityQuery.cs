@@ -15,7 +15,7 @@ public record UserByIdentityDto(
     string LastName,
     string? Patronymic);
     
-internal class GetUserByIdentityHandler(IDbContext dbContext) : IRequestHandler<GetUserByIdentityQuery, UserByIdentityDto>
+internal class GetUserByIdentityQueryHandler(IDbContext dbContext) : IRequestHandler<GetUserByIdentityQuery, UserByIdentityDto>
 {
     public async Task<UserByIdentityDto> Handle(GetUserByIdentityQuery request, CancellationToken cancellationToken)
     {

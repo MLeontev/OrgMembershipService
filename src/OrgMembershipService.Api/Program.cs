@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Diagnostics;
 using OrgMembershipService.Api.Extensions;
 using OrgMembershipService.Api.Middlewares;
 using OrgMembershipService.Application;

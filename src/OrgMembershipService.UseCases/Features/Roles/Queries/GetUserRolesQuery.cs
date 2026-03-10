@@ -8,7 +8,7 @@ public record GetUserRolesQuery(Guid OrganizationId, Guid UserId) : IRequest<Use
 
 public record UserRolesDto(IReadOnlyCollection<string> Roles);
 
-internal class GetUserRolesHandler(IDbContext dbContext) : IRequestHandler<GetUserRolesQuery, UserRolesDto>
+internal class GetUserRolesQueryHandler(IDbContext dbContext) : IRequestHandler<GetUserRolesQuery, UserRolesDto>
 {
     public async Task<UserRolesDto> Handle(GetUserRolesQuery request, CancellationToken cancellationToken)
     {
