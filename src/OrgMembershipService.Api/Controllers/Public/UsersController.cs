@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrgMembershipService.Api.Contracts;
 using OrgMembershipService.Application.Features.Users.Commands;
@@ -31,5 +33,13 @@ public class UsersController(ISender sender) : ControllerBase
     {
         var response = await sender.Send(request, cancellationToken);
         return Ok(response);
+    }
+    
+    [Authorize]
+    [HttpGet("authenticate")]
+    public IActionResult TestAuth()
+    {
+        var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Ok(identityId);
     }
 }

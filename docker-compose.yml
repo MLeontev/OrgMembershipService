@@ -9,6 +9,7 @@
       - '8081:8081'
     environment:
       - ConnectionStrings__DefaultConnection=Server=db;Port=5432;User Id=postgres;Password=postgres;Database=OrgMembership;
+      - Authentication__TokenValidationParameters__ValidIssuers__2=${KEYCLOAK_ISSUER}
     depends_on:
       db:
         condition: service_healthy

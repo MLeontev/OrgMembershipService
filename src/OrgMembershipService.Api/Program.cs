@@ -19,6 +19,23 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Description = "API для управления пользователями, членством в организациях и проверкой прав доступа"
     });
+    
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Введите JWT access токен без префикса Bearer"
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecuritySchemeReference("Bearer", document), []
+        }
+    });
 
     var apiXmlPath = Path.Combine(
         AppContext.BaseDirectory,
