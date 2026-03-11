@@ -10,8 +10,8 @@ namespace OrgMembershipService.Application.Features.Authorization.Queries;
 /// Запрос на проверку права пользователя в организации
 /// </summary>
 /// <param name="OrganizationId">Идентификатор организации</param>
-/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
-/// <param name="PermissionCode">Код permission (например, <c>MEMBERS_LIST</c>)</param>
+/// <param name="IdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
+/// <param name="PermissionCode">Код права (например, <c>MEMBERS_LIST</c>)</param>
 public record CheckPermissionQuery(
     Guid OrganizationId,
     string IdentityId,

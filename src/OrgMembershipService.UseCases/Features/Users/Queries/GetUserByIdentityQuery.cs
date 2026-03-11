@@ -8,14 +8,14 @@ namespace OrgMembershipService.Application.Features.Users.Queries;
 /// <summary>
 /// Запрос пользователя по identityId (sub из access токена Keycloak)
 /// </summary>
-/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+/// <param name="IdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
 public record GetUserByIdentityQuery(string IdentityId) : IRequest<UserByIdentityDto>;
 
 /// <summary>
 /// Профиль пользователя для internal интеграций
 /// </summary>
 /// <param name="Id">Внутренний идентификатор пользователя в сервисе</param>
-/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+/// <param name="IdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
 /// <param name="Email">Email пользователя</param>
 /// <param name="FirstName">Имя</param>
 /// <param name="LastName">Фамилия</param>

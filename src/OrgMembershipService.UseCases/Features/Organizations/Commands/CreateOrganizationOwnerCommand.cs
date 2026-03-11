@@ -11,7 +11,7 @@ namespace OrgMembershipService.Application.Features.Organizations.Commands;
 /// Команда назначения владельца организации
 /// </summary>
 /// <param name="OrganizationId">Идентификатор организации</param>
-/// <param name="OwnerIdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+/// <param name="OwnerIdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
 public record CreateOrganizationOwnerCommand(Guid OrganizationId, string OwnerIdentityId) : IRequest;
 
 internal class CreateOrganizationOwnerCommandHandler(

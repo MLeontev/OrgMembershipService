@@ -16,7 +16,7 @@ public class InternalUsersController(ISender sender) : ControllerBase
     /// <summary>
     /// Возвращает пользователя по identityId (sub из access токена Keycloak)
     /// </summary>
-    /// <param name="identityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+    /// <param name="identityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Профиль пользователя</returns>
     [HttpGet("by-identity/{identityId}")]

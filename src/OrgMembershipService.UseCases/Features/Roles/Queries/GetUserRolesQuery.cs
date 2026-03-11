@@ -6,14 +6,14 @@ using OrgMembershipService.Application.Services;
 namespace OrgMembershipService.Application.Features.Roles.Queries;
 
 /// <summary>
-/// Запрос списка role code пользователя в рамках организации
+/// Запрос списка кодов ролей пользователя в рамках организации
 /// </summary>
 /// <param name="OrganizationId">Идентификатор организации</param>
-/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+/// <param name="IdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
 public record GetUserRolesQuery(Guid OrganizationId, string IdentityId) : IRequest<UserRolesDto>;
 
 /// <summary>
-/// Список role code пользователя
+/// Список кодов ролей пользователя
 /// </summary>
 /// <param name="Roles">Уникальные коды ролей</param>
 public record UserRolesDto(IReadOnlyCollection<string> Roles);

@@ -24,7 +24,7 @@ public record RegisterUserCommand(
 /// Результат регистрации пользователя
 /// </summary>
 /// <param name="UserId">Внутренний идентификатор пользователя в сервисе</param>
-/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub)</param>
+/// <param name="IdentityId">Идентификатор пользователя в Keycloak (sub)</param>
 public record RegisterUserDto(Guid UserId, string IdentityId);
 
 internal class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>

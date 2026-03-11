@@ -14,7 +14,7 @@ namespace OrgMembershipService.Api.Controllers.Internal;
 public class InternalOrganizationsController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Создаёт владельца организации (membership + роль <c>ORG_OWNER</c>) по identityId пользователя
+    /// Создаёт владельца организации (создание членства + роль <c>ORG_OWNER</c>) по identityId пользователя
     /// </summary>
     /// <param name="command">Идентификатор организации и ownerIdentityId</param>
     /// <param name="cancellationToken">Токен отмены</param>

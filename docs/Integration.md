@@ -6,7 +6,7 @@
 
 - POST /api/internal/authorization/check - Проверка, есть ли у пользователя право в организации (identityId + permissionCode -> allowed)
 - GET /api/internal/users/by-identity/{identityId} - Получение профиля пользователя по identityId (sub из access токена Keycloak)
-- POST /api/internal/organizations/owner - Назначение владельца организации (создание membership и выдача роли ORG_OWNER)
+- POST /api/internal/organizations/owner - Назначение владельца организации (создание членства и выдача роли ORG_OWNER)
 - GET /api/internal/organizations/{organizationId}/users/{identityId}/permissions - Получение всех прав пользователя в организации
 - GET /api/internal/organizations/{organizationId}/users/{identityId}/roles - Получение всех ролей пользователя в организации
 

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using OrgMembershipService.Api.Contracts;
+using OrgMembershipService.Application.Features.Memberships.Queries;
 using OrgMembershipService.Application.Features.Roles.Queries;
 
 namespace OrgMembershipService.Api.Controllers.Internal;
@@ -14,10 +15,10 @@ namespace OrgMembershipService.Api.Controllers.Internal;
 public class InternalUserAccessController(ISender sender) : ControllerBase
 {
     /// <summary>
-    /// Возвращает агрегированный список permission code для пользователя в организации
+    /// Возвращает агрегированный список кодов прав пользователя в организации
     /// </summary>
     /// <param name="organizationId">Идентификатор организации</param>
-    /// <param name="identityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+    /// <param name="identityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
     /// <param name="cancellationToken">Токен отмены</param>
     [HttpGet("permissions")]
     [ProducesResponseType(typeof(UserPermissionsDto), StatusCodes.Status200OK)]
@@ -36,10 +37,10 @@ public class InternalUserAccessController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Возвращает агрегированный список role code для пользователя в организации
+    /// Возвращает агрегированный список кодов ролей пользователя в организации
     /// </summary>
     /// <param name="organizationId">Идентификатор организации</param>
-    /// <param name="identityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+    /// <param name="identityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
     /// <param name="cancellationToken">Токен отмены</param>
     [HttpGet("roles")]
     [ProducesResponseType(typeof(UserRolesDto), StatusCodes.Status200OK)]
@@ -55,5 +56,27 @@ public class InternalUserAccessController(ISender sender) : ControllerBase
             cancellationToken);
 
         return Ok(roles);
+    }
+    
+    /// <summary>
+    /// Возвращает членство пользователя в организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="identityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    [HttpGet("membership")]
+    [ProducesResponseType(typeof(UserMembershipDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UserMembershipDto>> GetMembership(
+        [FromRoute] Guid organizationId,
+        [FromRoute] string identityId,
+        CancellationToken cancellationToken)
+    {
+        var membership = await sender.Send(
+            new GetUserMembershipQuery(organizationId, identityId),
+            cancellationToken);
+
+        return Ok(membership);
     }
 }
