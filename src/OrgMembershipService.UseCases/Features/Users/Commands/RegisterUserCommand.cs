@@ -5,6 +5,14 @@ using OrgMembershipService.Domain.Entities;
 
 namespace OrgMembershipService.Application.Features.Users.Commands;
 
+/// <summary>
+/// Команда регистрации пользователя
+/// </summary>
+/// <param name="Email">Email</param>
+/// <param name="Password">Пароль</param>
+/// <param name="FirstName">Имя</param>
+/// <param name="LastName">Фамилия</param>
+/// <param name="Patronymic">Отчество (необязательно)</param>
 public record RegisterUserCommand(
     string Email, 
     string Password, 
@@ -12,6 +20,11 @@ public record RegisterUserCommand(
     string LastName, 
     string? Patronymic) : IRequest<RegisterUserDto>;
 
+/// <summary>
+/// Результат регистрации пользователя
+/// </summary>
+/// <param name="UserId">Внутренний идентификатор пользователя в сервисе</param>
+/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub)</param>
 public record RegisterUserDto(Guid UserId, string IdentityId);
 
 internal class RegisterUserCommandValidator : AbstractValidator<RegisterUserCommand>

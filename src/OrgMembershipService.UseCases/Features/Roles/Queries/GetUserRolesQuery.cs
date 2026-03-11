@@ -5,8 +5,17 @@ using OrgMembershipService.Application.Services;
 
 namespace OrgMembershipService.Application.Features.Roles.Queries;
 
+/// <summary>
+/// Запрос списка role code пользователя в рамках организации
+/// </summary>
+/// <param name="OrganizationId">Идентификатор организации</param>
+/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
 public record GetUserRolesQuery(Guid OrganizationId, string IdentityId) : IRequest<UserRolesDto>;
 
+/// <summary>
+/// Список role code пользователя
+/// </summary>
+/// <param name="Roles">Уникальные коды ролей</param>
 public record UserRolesDto(IReadOnlyCollection<string> Roles);
 
 internal class GetUserRolesQueryHandler(

@@ -6,11 +6,21 @@ using OrgMembershipService.Domain.Entities;
 
 namespace OrgMembershipService.Application.Features.Authorization.Queries;
 
+/// <summary>
+/// Запрос на проверку права пользователя в организации
+/// </summary>
+/// <param name="OrganizationId">Идентификатор организации</param>
+/// <param name="IdentityId">Внешний идентификатор пользователя в Keycloak (sub из access токена)</param>
+/// <param name="PermissionCode">Код permission (например, <c>MEMBERS_LIST</c>)</param>
 public record CheckPermissionQuery(
     Guid OrganizationId,
     string IdentityId,
     string PermissionCode) : IRequest<CheckPermissionDto>;
     
+/// <summary>
+/// Результат проверки права
+/// </summary>
+/// <param name="Allowed">Признак наличия права</param>
 public record CheckPermissionDto(bool Allowed);
 
 internal class CheckPermissionQueryHandler(
