@@ -9,6 +9,8 @@
 - POST /api/internal/organizations/owner - Назначение владельца организации (создание членства и выдача роли ORG_OWNER)
 - GET /api/internal/organizations/{organizationId}/users/{identityId}/permissions - Получение всех прав пользователя в организации
 - GET /api/internal/organizations/{organizationId}/users/{identityId}/roles - Получение всех ролей пользователя в организации
+- GET /api/internal/organizations/{organizationId}/users/{identityId}/membership - Получение данных членства пользователя в организации
+- GET /api/internal/users/{identityId}/organizations?status=Active - Получение списка организаций пользователя с фильтром по статусу членства
 
 identityId - id пользователя в Keycloak, его нужно получить из JWT токена
 
