@@ -62,18 +62,21 @@ app.UseAuthorization();
 
 ### Защита эндпоинтов
 
-Для защиты ручек необходимо использовать атрибут [Authorize]
+Для защиты ручек необходимо использовать атрибут `[Authorize]`
 
-Для получения identityId необходимо использовать var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+Для получения `identityId` необходимо использовать `var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);`
 
 Пример:
+
+```csharp
 [Authorize]
 [HttpGet("authenticate")]
 public IActionResult TestAuth()
 {
-var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-return Ok(identityId);
+    var identityId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    return Ok(identityId);
 }
+```
 
 ## Работа с токенами
 
