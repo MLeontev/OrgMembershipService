@@ -29,10 +29,7 @@ public class InternalUserAccessController(ISender sender) : ControllerBase
         [FromRoute] string identityId,
         CancellationToken cancellationToken)
     {
-        var permissions = await sender.Send(
-            new GetUserPermissionsQuery(organizationId, identityId),
-            cancellationToken);
-
+        var permissions = await sender.Send(new GetUserPermissionsQuery(organizationId, identityId), cancellationToken);
         return Ok(permissions);
     }
 
@@ -51,10 +48,7 @@ public class InternalUserAccessController(ISender sender) : ControllerBase
         [FromRoute] string identityId,
         CancellationToken cancellationToken)
     {
-        var roles = await sender.Send(
-            new GetUserRolesQuery(organizationId, identityId),
-            cancellationToken);
-
+        var roles = await sender.Send(new GetUserRolesQuery(organizationId, identityId), cancellationToken);
         return Ok(roles);
     }
     
@@ -73,10 +67,7 @@ public class InternalUserAccessController(ISender sender) : ControllerBase
         [FromRoute] string identityId,
         CancellationToken cancellationToken)
     {
-        var membership = await sender.Send(
-            new GetUserMembershipQuery(organizationId, identityId),
-            cancellationToken);
-
+        var membership = await sender.Send(new GetUserMembershipQuery(organizationId, identityId), cancellationToken);
         return Ok(membership);
     }
 }

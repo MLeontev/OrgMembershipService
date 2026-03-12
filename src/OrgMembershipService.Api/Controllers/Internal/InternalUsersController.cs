@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrgMembershipService.Api.Contracts;
 using OrgMembershipService.Application.Features.Users.Queries;
@@ -48,10 +50,7 @@ public class InternalUsersController(ISender sender) : ControllerBase
         [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
-        var organizations = await sender.Send(
-            new GetUserOrganizationsQuery(identityId, status),
-            cancellationToken);
-        
+        var organizations = await sender.Send(new GetUserOrganizationsQuery(identityId, status), cancellationToken);
         return Ok(organizations);
     }
 }
