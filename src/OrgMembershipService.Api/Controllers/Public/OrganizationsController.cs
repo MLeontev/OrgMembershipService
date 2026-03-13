@@ -19,6 +19,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// Возвращает список участников организации
     /// </summary>
     /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="status">Фильтр по статусу членства (Active, Deactivated, Removed)</param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Список участников организации</returns>
     [Authorize]
@@ -28,10 +29,11 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrganizationMembersDto>> GetMembers(
-        [FromRoute] Guid organizationId, 
+        [FromRoute] Guid organizationId,
+        [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
-        var members = await sender.Send(new GetOrganizationMembersQuery(organizationId), cancellationToken);
+        var members = await sender.Send(new GetOrganizationMembersQuery(organizationId, status), cancellationToken);
         return Ok(members);
     }
 

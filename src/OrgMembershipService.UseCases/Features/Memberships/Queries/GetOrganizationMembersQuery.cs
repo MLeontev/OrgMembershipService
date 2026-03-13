@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrgMembershipService.Application.Abstractions;
+using OrgMembershipService.Domain.Entities;
 
 namespace OrgMembershipService.Application.Features.Memberships.Queries;
 
@@ -9,7 +10,8 @@ namespace OrgMembershipService.Application.Features.Memberships.Queries;
 /// Запрос списка участников организации
 /// </summary>
 /// <param name="OrganizationId">Идентификатор организации</param>
-public record GetOrganizationMembersQuery(Guid OrganizationId) : IRequest<OrganizationMembersDto>;
+/// <param name="Status">Фильтр по статусу членства (Active, Deactivated, Removed)</param>
+public record GetOrganizationMembersQuery(Guid OrganizationId, string? Status) : IRequest<OrganizationMembersDto>;
 
 /// <summary>
 /// Список участников организации
@@ -48,15 +50,38 @@ public record OrganizationMemberDto(
     DateTimeOffset? RemovedAt,
     IReadOnlyCollection<string> Roles);
 
+internal class GetOrganizationMembersQueryValidator : AbstractValidator<GetOrganizationMembersQuery>
+{
+    public GetOrganizationMembersQueryValidator()
+    {
+        RuleFor(x => x.Status)
+            .Must(BeValidStatus)
+            .When(x => !string.IsNullOrWhiteSpace(x.Status))
+            .WithMessage("Некорректный статус членства");
+    }
+
+    private static bool BeValidStatus(string? status) =>
+        Enum.TryParse<MembershipStatus>(status, ignoreCase: true, out _);
+}
+
 internal class GetOrganizationMembersQueryHandler(IDbContext dbContext) : IRequestHandler<GetOrganizationMembersQuery, OrganizationMembersDto>
 {
     public async Task<OrganizationMembersDto> Handle(
         GetOrganizationMembersQuery request,
         CancellationToken cancellationToken)
     {
-        var members = await dbContext.Memberships
+        MembershipStatus? statusFilter = null;
+        if (!string.IsNullOrWhiteSpace(request.Status))
+            statusFilter = Enum.Parse<MembershipStatus>(request.Status, ignoreCase: true);
+
+        var query = dbContext.Memberships
             .AsNoTracking()
-            .Where(x => x.OrganizationId == request.OrganizationId)
+            .Where(x => x.OrganizationId == request.OrganizationId);
+
+        if (statusFilter.HasValue)
+            query = query.Where(x => x.Status == statusFilter.Value);
+
+        var members = await query
             .OrderBy(x => x.User.LastName)
             .ThenBy(x => x.User.FirstName)
             .ThenBy(x => x.User.Email)
