@@ -1,3 +1,5 @@
+using OrgMembershipService.Domain.Exceptions;
+
 namespace OrgMembershipService.Domain.Entities;
 
 public class Membership
@@ -51,5 +53,45 @@ public class Membership
             AssignedByUserId = assignedByUserId,
             AssignedAt = DateTimeOffset.UtcNow
         });
+    }
+
+    public void UpdateProfile(string? department, string? title)
+    {
+        Department = department;
+        Title = title;
+    }
+
+    public void Deactivate()
+    {
+        if (Status == MembershipStatus.Removed)
+            throw new ConflictException("MEMBERSHIP_REMOVED", "Нельзя деактивировать удаленного участника");
+
+        if (Status == MembershipStatus.Deactivated)
+            return;
+
+        Status = MembershipStatus.Deactivated;
+    }
+
+    public void Activate()
+    {
+        if (Status == MembershipStatus.Removed)
+            throw new ConflictException("MEMBERSHIP_REMOVED", "Нельзя активировать удаленного участника");
+
+        if (Status == MembershipStatus.Active)
+            return;
+
+        Status = MembershipStatus.Active;
+    }
+
+    public void Remove()
+    {
+        if (Status == MembershipStatus.Removed)
+        {
+            RemovedAt ??= DateTimeOffset.UtcNow;
+            return;
+        }
+
+        Status = MembershipStatus.Removed;
+        RemovedAt = DateTimeOffset.UtcNow;
     }
 }
