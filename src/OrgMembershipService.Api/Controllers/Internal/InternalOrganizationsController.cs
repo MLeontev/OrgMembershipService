@@ -32,4 +32,21 @@ public class InternalOrganizationsController(ISender sender) : ControllerBase
         await sender.Send(command, cancellationToken);
         return Ok();
     }
+
+    /// <summary>
+    /// Удаляет данные организации в OrgMembershipService (членства, приглашения, кастомные роли)
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    [HttpPost("{organizationId:guid}/delete")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteOrganization(
+        [FromRoute] Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        await sender.Send(new DeleteOrganizationCommand(organizationId), cancellationToken);
+        return Ok();
+    }
 }
