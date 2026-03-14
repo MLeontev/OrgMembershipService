@@ -47,7 +47,6 @@ public class Membership
 
         _roleAssignments.Add(new MembershipRole
         {
-            Id = Guid.NewGuid(),
             Membership = this,
             RoleId = roleId,
             AssignedByUserId = assignedByUserId,
