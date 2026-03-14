@@ -5,6 +5,7 @@ using OrgMembershipService.Api.Contracts;
 using OrgMembershipService.Api.Extensions;
 using OrgMembershipService.Application.Features.Memberships.Commands;
 using OrgMembershipService.Application.Features.Memberships.Queries;
+using OrgMembershipService.Application.Features.Roles.Commands;
 using OrgMembershipService.Application.Features.Roles.Queries;
 
 namespace OrgMembershipService.Api.Controllers.Public;
@@ -33,12 +34,134 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrganizationRolesDto>> GetRoles(
         [FromRoute] Guid organizationId,
-        [FromQuery] bool includeSystem = true,
-        CancellationToken cancellationToken = default)
+        [FromQuery] bool includeSystem,
+        CancellationToken cancellationToken)
     {
         await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
         var roles = await sender.Send(new GetOrganizationRolesQuery(organizationId, includeSystem), cancellationToken);
         return Ok(roles);
+    }
+
+    /// <summary>
+    /// Возвращает список кастомных ролей организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Список кастомных ролей организации</returns>
+    [Authorize]
+    [HttpGet("roles/custom")]
+    [ProducesResponseType(typeof(OrganizationRolesDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<OrganizationRolesDto>> GetCustomRoles(
+        [FromRoute] Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
+        var roles = await sender.Send(new GetOrganizationRolesQuery(organizationId, false), cancellationToken);
+        return Ok(roles);
+    }
+
+    /// <summary>
+    /// Создает кастомную роль организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="request">Данные для создания кастомной роли</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Созданная кастомная роль</returns>
+    [Authorize]
+    [HttpPost("roles/custom")]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(OrganizationRoleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<OrganizationRoleDto>> CreateCustomRole(
+        [FromRoute] Guid organizationId,
+        [FromBody] CreateCustomRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_CREATE", cancellationToken);
+
+        var role = await sender.Send(
+            new CreateOrganizationCustomRoleCommand(
+                organizationId,
+                request.Code,
+                request.Name,
+                request.Description,
+                request.PermissionCodes),
+            cancellationToken);
+
+        return Ok(role);
+    }
+
+    /// <summary>
+    /// Обновляет кастомную роль организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="roleId">Идентификатор роли</param>
+    /// <param name="request">Данные для обновления кастомной роли</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Обновленная кастомная роль</returns>
+    [Authorize]
+    [HttpPut("roles/custom/{roleId:guid}")]
+    [Consumes("application/json")]
+    [ProducesResponseType(typeof(OrganizationRoleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<OrganizationRoleDto>> UpdateCustomRole(
+        [FromRoute] Guid organizationId,
+        [FromRoute] Guid roleId,
+        [FromBody] UpdateCustomRoleRequest request,
+        CancellationToken cancellationToken)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_UPDATE", cancellationToken);
+
+        var role = await sender.Send(
+            new UpdateOrganizationCustomRoleCommand(
+                organizationId,
+                roleId,
+                request.Code,
+                request.Name,
+                request.Description,
+                request.PermissionCodes),
+            cancellationToken);
+
+        return Ok(role);
+    }
+
+    /// <summary>
+    /// Удаляет кастомную роль организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="roleId">Идентификатор роли</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    [Authorize]
+    [HttpDelete("roles/custom/{roleId:guid}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteCustomRole(
+        [FromRoute] Guid organizationId,
+        [FromRoute] Guid roleId,
+        CancellationToken cancellationToken)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_DELETE", cancellationToken);
+        await sender.Send(new DeleteOrganizationCustomRoleCommand(organizationId, roleId), cancellationToken);
+        return Ok();
     }
 
     /// <summary>
