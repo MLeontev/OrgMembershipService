@@ -72,15 +72,26 @@ internal class GetUserOrganizationsQueryHandler(
         if (statusFilter.HasValue)
             query = query.Where(x => x.Status == statusFilter.Value);
 
-        var organizations = await query
+        var organizationsData = await query
+            .OrderBy(x => x.OrganizationId)
+            .Select(x => new
+            {
+                x.OrganizationId,
+                x.Id,
+                x.Status,
+                x.JoinedAt,
+                x.RemovedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        var organizations = organizationsData
             .Select(x => new UserOrganizationDto(
                 x.OrganizationId,
                 x.Id,
                 x.Status.ToString(),
                 x.JoinedAt,
                 x.RemovedAt))
-            .OrderBy(x => x.OrganizationId)
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         return new UserOrganizationsDto(organizations);
     }
