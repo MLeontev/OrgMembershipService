@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OrgMembershipService.Api.Contracts;
+using OrgMembershipService.Api.Extensions;
 using OrgMembershipService.Application.Features.Memberships.Commands;
 using OrgMembershipService.Application.Features.Memberships.Queries;
 
@@ -27,12 +28,14 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(OrganizationMembersDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrganizationMembersDto>> GetMembers(
         [FromRoute] Guid organizationId,
         [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
+        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_LIST", cancellationToken);
         var members = await sender.Send(new GetOrganizationMembersQuery(organizationId, status), cancellationToken);
         return Ok(members);
     }
@@ -49,6 +52,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(OrganizationMemberDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrganizationMemberDto>> GetMemberById(
@@ -56,6 +60,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
+        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_READ", cancellationToken);
         var member = await sender.Send(new GetOrganizationMemberByIdQuery(organizationId, membershipId), cancellationToken);
         return Ok(member);
     }
@@ -73,6 +78,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> UpdateMember(
@@ -81,6 +87,8 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromBody] UpdateOrganizationMemberRequest request,
         CancellationToken cancellationToken)
     {
+        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_UPDATE", cancellationToken);
+
         await sender.Send(
             new UpdateOrganizationMemberCommand(
                 organizationId,
@@ -103,6 +111,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -111,6 +120,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
+        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
         await sender.Send(new DeactivateOrganizationMemberCommand(organizationId, membershipId), cancellationToken);
         return Ok();
     }
@@ -126,6 +136,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -134,6 +145,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
+        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
         await sender.Send(new ActivateOrganizationMemberCommand(organizationId, membershipId), cancellationToken);
         return Ok();
     }
@@ -149,6 +161,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteMember(
@@ -156,6 +169,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
+        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_REMOVE", cancellationToken);
         await sender.Send(new RemoveOrganizationMemberCommand(organizationId, membershipId), cancellationToken);
         return Ok();
     }

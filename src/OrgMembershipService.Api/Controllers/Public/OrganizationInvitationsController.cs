@@ -28,13 +28,23 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(OrganizationInvitationsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<OrganizationInvitationsDto>> GetList(
         [FromRoute] Guid organizationId,
         [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
-        var invitations = await sender.Send(new GetOrganizationInvitationsQuery(organizationId, status), cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(
+            sender,
+            organizationId,
+            "MEMBERS_INVITE_LIST",
+            cancellationToken);
+
+        var invitations = await sender.Send(
+            new GetOrganizationInvitationsQuery(organizationId, identityId, status),
+            cancellationToken);
+
         return Ok(invitations);
     }
 
@@ -49,6 +59,7 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -57,7 +68,11 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
         [FromRoute] Guid invitationId,
         CancellationToken cancellationToken)
     {
-        var identityId = User.GetRequiredIdentityId();
+        var identityId = await this.EnsurePermissionAsync(
+            sender,
+            organizationId,
+            "MEMBERS_INVITE_REVOKE",
+            cancellationToken);
 
         await sender.Send(
             new RevokeOrganizationInvitationCommand(
@@ -82,6 +97,7 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(CreateOrganizationInvitationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status422UnprocessableEntity)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
@@ -90,7 +106,11 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
         [FromBody] CreateOrganizationInvitationRequest request,
         CancellationToken cancellationToken)
     {
-        var identityId = User.GetRequiredIdentityId();
+        var identityId = await this.EnsurePermissionAsync(
+            sender,
+            organizationId,
+            "MEMBERS_INVITE_CREATE",
+            cancellationToken);
 
         var invitation = await sender.Send(
             new CreateOrganizationInvitationCommand(

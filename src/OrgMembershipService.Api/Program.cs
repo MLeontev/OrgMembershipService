@@ -72,6 +72,7 @@ await app.SeedDatabase();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

@@ -55,7 +55,13 @@ internal class AcceptInvitationByTokenCommandHandler(
             membership.Activate();
         }
 
-        foreach (var roleId in roleIds)
+        var existingRoleIds = await dbContext.MembershipRoles
+            .AsNoTracking()
+            .Where(x => x.MembershipId == membership.Id)
+            .Select(x => x.RoleId)
+            .ToHashSetAsync(cancellationToken);
+
+        foreach (var roleId in roleIds.Where(x => !existingRoleIds.Contains(x)))
             membership.AssignRole(roleId, invitation.CreatedByUserId);
 
         invitation.Accept(userId);
