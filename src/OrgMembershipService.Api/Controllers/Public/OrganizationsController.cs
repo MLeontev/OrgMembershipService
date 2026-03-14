@@ -11,7 +11,7 @@ namespace OrgMembershipService.Api.Controllers.Public;
 /// Операции с организациями
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/[controller]/{organizationId:guid}")]
 [Produces("application/json")]
 public class OrganizationsController(ISender sender) : ControllerBase
 {
@@ -23,7 +23,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Список участников организации</returns>
     [Authorize]
-    [HttpGet("{organizationId:guid}/members")]
+    [HttpGet("members")]
     [ProducesResponseType(typeof(OrganizationMembersDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -45,7 +45,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Данные участника организации</returns>
     [Authorize]
-    [HttpGet("{organizationId:guid}/members/{membershipId:guid}")]
+    [HttpGet("members/{membershipId:guid}")]
     [ProducesResponseType(typeof(OrganizationMemberDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -68,7 +68,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="request">Данные для обновления участника</param>
     /// <param name="cancellationToken">Токен отмены</param>
     [Authorize]
-    [HttpPatch("{organizationId:guid}/members/{membershipId:guid}")]
+    [HttpPatch("members/{membershipId:guid}")]
     [Consumes("application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -99,7 +99,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="membershipId">Идентификатор членства</param>
     /// <param name="cancellationToken">Токен отмены</param>
     [Authorize]
-    [HttpPost("{organizationId:guid}/members/{membershipId:guid}/deactivate")]
+    [HttpPost("members/{membershipId:guid}/deactivate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -122,7 +122,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="membershipId">Идентификатор членства</param>
     /// <param name="cancellationToken">Токен отмены</param>
     [Authorize]
-    [HttpPost("{organizationId:guid}/members/{membershipId:guid}/activate")]
+    [HttpPost("members/{membershipId:guid}/activate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
@@ -145,7 +145,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="membershipId">Идентификатор членства</param>
     /// <param name="cancellationToken">Токен отмены</param>
     [Authorize]
-    [HttpDelete("{organizationId:guid}/members/{membershipId:guid}")]
+    [HttpDelete("members/{membershipId:guid}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
