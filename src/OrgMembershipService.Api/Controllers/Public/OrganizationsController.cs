@@ -43,28 +43,6 @@ public class OrganizationsController(ISender sender) : ControllerBase
     }
 
     /// <summary>
-    /// Возвращает список кастомных ролей организации
-    /// </summary>
-    /// <param name="organizationId">Идентификатор организации</param>
-    /// <param name="cancellationToken">Токен отмены</param>
-    /// <returns>Список кастомных ролей организации</returns>
-    [Authorize]
-    [HttpGet("roles/custom")]
-    [ProducesResponseType(typeof(OrganizationRolesDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<OrganizationRolesDto>> GetCustomRoles(
-        [FromRoute] Guid organizationId,
-        CancellationToken cancellationToken)
-    {
-        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
-        var roles = await sender.Send(new GetOrganizationRolesQuery(organizationId, false), cancellationToken);
-        return Ok(roles);
-    }
-
-    /// <summary>
     /// Создает кастомную роль организации
     /// </summary>
     /// <param name="organizationId">Идентификатор организации</param>
