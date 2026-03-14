@@ -48,7 +48,7 @@ public class Membership
         _roleAssignments.Add(new MembershipRole
         {
             Id = Guid.NewGuid(),
-            MembershipId = Id,
+            Membership = this,
             RoleId = roleId,
             AssignedByUserId = assignedByUserId,
             AssignedAt = DateTimeOffset.UtcNow
