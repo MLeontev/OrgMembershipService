@@ -5,6 +5,7 @@ using OrgMembershipService.Api.Contracts;
 using OrgMembershipService.Api.Extensions;
 using OrgMembershipService.Application.Features.Memberships.Commands;
 using OrgMembershipService.Application.Features.Memberships.Queries;
+using OrgMembershipService.Application.Features.Roles.Queries;
 
 namespace OrgMembershipService.Api.Controllers.Public;
 
@@ -16,6 +17,30 @@ namespace OrgMembershipService.Api.Controllers.Public;
 [Produces("application/json")]
 public class OrganizationsController(ISender sender) : ControllerBase
 {
+    /// <summary>
+    /// Возвращает список ролей организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="includeSystem">Включать ли системные роли (OrganizationId = null)</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Список ролей организации</returns>
+    [Authorize]
+    [HttpGet("roles")]
+    [ProducesResponseType(typeof(OrganizationRolesDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<OrganizationRolesDto>> GetRoles(
+        [FromRoute] Guid organizationId,
+        [FromQuery] bool includeSystem = true,
+        CancellationToken cancellationToken = default)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
+        var roles = await sender.Send(new GetOrganizationRolesQuery(organizationId, includeSystem), cancellationToken);
+        return Ok(roles);
+    }
+
     /// <summary>
     /// Возвращает список участников организации
     /// </summary>
@@ -63,6 +88,74 @@ public class OrganizationsController(ISender sender) : ControllerBase
         await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_READ", cancellationToken);
         var member = await sender.Send(new GetOrganizationMemberByIdQuery(organizationId, membershipId), cancellationToken);
         return Ok(member);
+    }
+
+    /// <summary>
+    /// Назначает роли участнику организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="membershipId">Идентификатор членства</param>
+    /// <param name="request">Коды ролей для назначения</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    [Authorize]
+    [HttpPost("members/{membershipId:guid}/roles")]
+    [Consumes("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AssignRoles(
+        [FromRoute] Guid organizationId,
+        [FromRoute] Guid membershipId,
+        [FromBody] AssignMemberRolesRequest request,
+        CancellationToken cancellationToken)
+    {
+        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "ROLES_ASSIGN", cancellationToken);
+
+        await sender.Send(
+            new AssignOrganizationMemberRolesCommand(
+                organizationId,
+                membershipId,
+                identityId,
+                request.RoleCodes),
+            cancellationToken);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Снимает роль с участника организации
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="membershipId">Идентификатор членства</param>
+    /// <param name="roleCode">Код роли для снятия</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    [Authorize]
+    [HttpDelete("members/{membershipId:guid}/roles/{roleCode}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RevokeRole(
+        [FromRoute] Guid organizationId,
+        [FromRoute] Guid membershipId,
+        [FromRoute] string roleCode,
+        CancellationToken cancellationToken)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_REVOKE", cancellationToken);
+
+        await sender.Send(
+            new RevokeOrganizationMemberRoleCommand(
+                organizationId,
+                membershipId,
+                roleCode),
+            cancellationToken);
+
+        return Ok();
     }
 
     /// <summary>

@@ -35,14 +35,14 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
         [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
-        var identityId = await this.EnsurePermissionAsync(
+        await this.EnsurePermissionAsync(
             sender,
             organizationId,
             "MEMBERS_INVITE_LIST",
             cancellationToken);
 
         var invitations = await sender.Send(
-            new GetOrganizationInvitationsQuery(organizationId, identityId, status),
+            new GetOrganizationInvitationsQuery(organizationId, status),
             cancellationToken);
 
         return Ok(invitations);
@@ -68,7 +68,7 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
         [FromRoute] Guid invitationId,
         CancellationToken cancellationToken)
     {
-        var identityId = await this.EnsurePermissionAsync(
+        await this.EnsurePermissionAsync(
             sender,
             organizationId,
             "MEMBERS_INVITE_REVOKE",
@@ -77,8 +77,7 @@ public class OrganizationInvitationsController(ISender sender) : ControllerBase
         await sender.Send(
             new RevokeOrganizationInvitationCommand(
                 organizationId,
-                invitationId,
-                identityId),
+                invitationId),
             cancellationToken);
 
         return Ok();

@@ -2,9 +2,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using OrgMembershipService.Application.Abstractions;
-using OrgMembershipService.Application.Services;
 using OrgMembershipService.Domain.Entities;
-using OrgMembershipService.Domain.Exceptions;
 
 namespace OrgMembershipService.Application.Features.Invitations.Queries;
 
@@ -12,9 +10,8 @@ namespace OrgMembershipService.Application.Features.Invitations.Queries;
 /// Запрос списка приглашений организации
 /// </summary>
 /// <param name="OrganizationId">Идентификатор организации</param>
-/// <param name="IdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
 /// <param name="Status">Фильтр по статусу приглашения (Pending, Accepted, Revoked, Expired)</param>
-public record GetOrganizationInvitationsQuery(Guid OrganizationId, string IdentityId, string? Status) : IRequest<OrganizationInvitationsDto>;
+public record GetOrganizationInvitationsQuery(Guid OrganizationId, string? Status) : IRequest<OrganizationInvitationsDto>;
 
 /// <summary>
 /// Список приглашений организации
@@ -59,27 +56,12 @@ internal class GetOrganizationInvitationsQueryValidator : AbstractValidator<GetO
         Enum.TryParse<InvitationStatus>(status, ignoreCase: true, out _);
 }
 
-internal class GetOrganizationInvitationsQueryHandler(
-    IDbContext dbContext,
-    IUserIdentityResolver identityResolver) : IRequestHandler<GetOrganizationInvitationsQuery, OrganizationInvitationsDto>
+internal class GetOrganizationInvitationsQueryHandler(IDbContext dbContext) : IRequestHandler<GetOrganizationInvitationsQuery, OrganizationInvitationsDto>
 {
     public async Task<OrganizationInvitationsDto> Handle(
         GetOrganizationInvitationsQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = await identityResolver.ResolveUserIdAsync(request.IdentityId, cancellationToken);
-
-        var membershipExists = await dbContext.Memberships
-            .AsNoTracking()
-            .AnyAsync(
-                x => x.OrganizationId == request.OrganizationId &&
-                     x.UserId == userId &&
-                     x.Status == MembershipStatus.Active,
-                cancellationToken);
-
-        if (!membershipExists)
-            throw new NotFoundException("MEMBERSHIP_NOT_FOUND", "Участник не найден в организации");
-
         InvitationStatus? statusFilter = null;
         if (!string.IsNullOrWhiteSpace(request.Status))
             statusFilter = Enum.Parse<InvitationStatus>(request.Status, ignoreCase: true);

@@ -62,17 +62,6 @@ internal class CreateOrganizationInvitationCommandHandler(
     {
         var createdByUserId = await identityResolver.ResolveUserIdAsync(request.CreatedByIdentityId, cancellationToken);
 
-        var creatorMembershipExists = await dbContext.Memberships
-            .AsNoTracking()
-            .AnyAsync(
-                x => x.OrganizationId == request.OrganizationId &&
-                     x.UserId == createdByUserId &&
-                     x.Status == MembershipStatus.Active,
-                cancellationToken);
-
-        if (!creatorMembershipExists)
-            throw new NotFoundException("MEMBERSHIP_NOT_FOUND", "Участник не найден в организации");
-
         var requestedRoleCodes = request.RoleCodes
             .Where(x => !string.IsNullOrWhiteSpace(x))
             .Select(x => x.Trim().ToUpperInvariant())
