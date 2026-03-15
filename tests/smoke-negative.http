@@ -13,6 +13,7 @@
 @missingMembershipId = 99999999-9999-9999-9999-999999999999
 @missingRoleCode = ROLE_DOES_NOT_EXIST
 @customRoleCode = NEG_ROLE_{{runId}}
+@customRoleCodeInvalidPriority = NEG_ROLE_BAD_PRIORITY_{{runId}}
 
 ### 01. Unauthorized: users/me without token -> 401
 GET {{baseUrl}}/api/users/me
@@ -162,6 +163,7 @@ Content-Type: application/json
   "code": "{{customRoleCode}}",
   "name": "No Access Role",
   "description": "Should be forbidden",
+  "priority": 100,
   "permissionCodes": ["MEMBERS_LIST"]
 }
 > {%
@@ -281,6 +283,7 @@ Content-Type: application/json
   "code": "{{customRoleCode}}",
   "name": "Role In Use",
   "description": "Will be assigned to member",
+  "priority": 250,
   "permissionCodes": ["MEMBERS_LIST"]
 }
 > {%
@@ -290,7 +293,25 @@ client.test("Create custom role for in-use test: 200", function () {
 client.global.set("negCustomRoleId", response.body.roleId);
 %}
 
-### 24. Assign custom role to invitee member
+### 24. Bad request: create custom role with negative priority -> 400
+POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "code": "{{customRoleCodeInvalidPriority}}",
+  "name": "Bad Priority Role",
+  "description": "Should fail validation",
+  "priority": -1,
+  "permissionCodes": ["MEMBERS_LIST"]
+}
+> {%
+client.test("Create custom role with negative priority: 400", function () {
+  client.assert(response.status === 400, "Expected 400");
+});
+%}
+
+### 25. Assign custom role to invitee member
 POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles
 Authorization: Bearer {{negOwnerAccessToken}}
 Content-Type: application/json
@@ -304,7 +325,7 @@ client.test("Assign custom role to member: 200", function () {
 });
 %}
 
-### 25. Conflict: delete custom role in use -> 409
+### 26. Conflict: delete custom role in use -> 409
 DELETE {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{negCustomRoleId}}
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -314,7 +335,7 @@ client.test("Delete custom role in use: 409", function () {
 });
 %}
 
-### 26. Not found: revoke unknown role from member -> 404
+### 27. Not found: revoke unknown role from member -> 404
 DELETE {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles/{{missingRoleCode}}
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -324,7 +345,7 @@ client.test("Revoke unknown role code: 404", function () {
 });
 %}
 
-### 27. Cleanup org data in OrgMembershipService
+### 28. Cleanup org data in OrgMembershipService
 POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
 
 > {%

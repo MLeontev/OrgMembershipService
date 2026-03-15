@@ -11,6 +11,7 @@
 @expiresAt = 2030-01-01T00:00:00Z
 @customRoleCode1 = TEAM_LEAD_{{runId}}
 @customRoleCode2 = TEAM_MANAGER_{{runId}}
+@customRolePriority = 650
 
 ### 01. Register owner user
 POST {{baseUrl}}/api/users/register
@@ -171,11 +172,15 @@ Content-Type: application/json
   "code": "{{customRoleCode1}}",
   "name": "Team Lead",
   "description": "Custom role for smoke test",
+  "priority": {{customRolePriority}},
   "permissionCodes": ["MEMBERS_LIST", "MEMBERS_READ"]
 }
 > {%
 client.test("Create custom role: 200", function () {
   client.assert(response.status === 200, "Expected 200");
+});
+client.test("Create custom role: priority saved", function () {
+  client.assert(response.body.priority === 650, "Expected priority=650");
 });
 client.global.set("customRoleId", response.body.roleId);
 %}
@@ -194,6 +199,9 @@ Content-Type: application/json
 > {%
 client.test("Update custom role: 200", function () {
   client.assert(response.status === 200, "Expected 200");
+});
+client.test("Update custom role: priority unchanged", function () {
+  client.assert(response.body.priority === 650, "Expected priority=650");
 });
 %}
 

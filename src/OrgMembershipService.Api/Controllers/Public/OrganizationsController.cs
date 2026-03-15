@@ -72,6 +72,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
                 request.Code,
                 request.Name,
                 request.Description,
+                request.Priority,
                 request.PermissionCodes),
             cancellationToken);
 

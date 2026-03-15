@@ -24,6 +24,7 @@ public record OrganizationRolesDto(IReadOnlyCollection<OrganizationRoleDto> Role
 /// <param name="RoleCode">Код роли</param>
 /// <param name="Name">Название роли</param>
 /// <param name="Description">Описание роли</param>
+/// <param name="Priority">Приоритет роли</param>
 /// <param name="IsSystem">Признак системной роли</param>
 /// <param name="PermissionCodes">Коды прав роли</param>
 public record OrganizationRoleDto(
@@ -31,6 +32,7 @@ public record OrganizationRoleDto(
     string RoleCode,
     string Name,
     string? Description,
+    int Priority,
     bool IsSystem,
     IReadOnlyCollection<string> PermissionCodes);
 
@@ -92,6 +94,7 @@ internal class GetOrganizationRolesQueryHandler(IDbContext dbContext) : IRequest
                     x.Code,
                     x.Name,
                     x.Description,
+                    x.Priority,
                     x.OrganizationId is null,
                     permissionCodes);
             })

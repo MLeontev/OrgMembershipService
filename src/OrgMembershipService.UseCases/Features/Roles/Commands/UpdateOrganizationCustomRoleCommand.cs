@@ -133,6 +133,7 @@ internal class UpdateOrganizationCustomRoleCommandHandler(IDbContext dbContext) 
             role.Code,
             role.Name,
             role.Description,
+            role.Priority,
             false,
             sortedPermissionCodes);
     }

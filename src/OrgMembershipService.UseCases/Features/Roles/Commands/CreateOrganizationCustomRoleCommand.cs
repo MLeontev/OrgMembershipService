@@ -15,12 +15,14 @@ namespace OrgMembershipService.Application.Features.Roles.Commands;
 /// <param name="Code">Код роли</param>
 /// <param name="Name">Название роли</param>
 /// <param name="Description">Описание роли</param>
+/// <param name="Priority">Приоритет роли</param>
 /// <param name="PermissionCodes">Коды прав роли</param>
 public record CreateOrganizationCustomRoleCommand(
     Guid OrganizationId,
     string Code,
     string Name,
     string? Description,
+    int Priority,
     IReadOnlyCollection<string> PermissionCodes) : IRequest<OrganizationRoleDto>;
 
 internal class CreateOrganizationCustomRoleCommandValidator : AbstractValidator<CreateOrganizationCustomRoleCommand>
@@ -44,6 +46,10 @@ internal class CreateOrganizationCustomRoleCommandValidator : AbstractValidator<
         RuleForEach(x => x.PermissionCodes)
             .Must(x => !string.IsNullOrWhiteSpace(x))
             .WithMessage("Код права обязателен");
+
+        RuleFor(x => x.Priority)
+            .GreaterThanOrEqualTo(0)
+            .WithMessage("Приоритет роли не может быть отрицательным");
     }
 }
 
@@ -96,7 +102,7 @@ internal class CreateOrganizationCustomRoleCommandHandler(IDbContext dbContext) 
             Name = roleName,
             Description = description,
             OrganizationId = request.OrganizationId,
-            Priority = 0
+            Priority = request.Priority
         };
 
         dbContext.Roles.Add(role);
@@ -123,6 +129,7 @@ internal class CreateOrganizationCustomRoleCommandHandler(IDbContext dbContext) 
             role.Code,
             role.Name,
             role.Description,
+            role.Priority,
             false,
             sortedPermissionCodes);
     }
