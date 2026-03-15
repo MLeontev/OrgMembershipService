@@ -1,0 +1,431 @@
+@baseUrl = http://localhost:8080
+@keycloakUrl = http://localhost:8082
+@realm = organization-bookings
+@publicClientId = bookings-public-client
+@orgId = 11111111-1111-1111-1111-111111111111
+@runId = {{$timestamp}}
+@ownerEmail = owner_{{runId}}@test.local
+@inviteeEmail = invitee_{{runId}}@test.local
+@ownerPassword = Pass123!
+@inviteePassword = Pass123!
+@expiresAt = 2030-01-01T00:00:00Z
+@customRoleCode1 = TEAM_LEAD_{{runId}}
+@customRoleCode2 = TEAM_MANAGER_{{runId}}
+
+### 01. Register owner user
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "email": "{{ownerEmail}}",
+  "password": "{{ownerPassword}}",
+  "firstName": "Owner",
+  "lastName": "User",
+  "patronymic": "Smoke"
+}
+> {%
+client.test("Register owner: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("ownerUserId", response.body.userId);
+client.global.set("ownerIdentityId", response.body.identityId);
+%}
+
+### 02. Get owner token from Keycloak
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id={{publicClientId}}&username={{ownerEmail}}&password={{ownerPassword}}
+> {%
+client.test("Owner token: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("ownerAccessToken", response.body.access_token);
+client.global.set("ownerRefreshToken", response.body.refresh_token);
+%}
+
+### 03. Internal: create organization owner
+POST {{baseUrl}}/api/internal/organizations/owner
+Content-Type: application/json
+
+{
+  "organizationId": "{{orgId}}",
+  "ownerIdentityId": "{{ownerIdentityId}}"
+}
+> {%
+client.test("Create owner: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 04. Internal: check permission
+POST {{baseUrl}}/api/internal/authorization/check
+Content-Type: application/json
+
+{
+  "organizationId": "{{orgId}}",
+  "identityId": "{{ownerIdentityId}}",
+  "permissionCode": "ROLES_LIST"
+}
+> {%
+client.test("Permission check: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.test("Permission check: allowed=true", function () {
+  client.assert(response.body.allowed === true, "Expected allowed=true");
+});
+%}
+
+### 05. Internal: user by identity
+GET {{baseUrl}}/api/internal/users/by-identity/{{ownerIdentityId}}
+
+> {%
+client.test("Internal user by identity: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 06. Internal: user organizations
+GET {{baseUrl}}/api/internal/users/{{ownerIdentityId}}/organizations?status=Active
+
+> {%
+client.test("Internal user organizations: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 07. Internal: membership by identity in organization
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{ownerIdentityId}}/membership
+
+> {%
+client.test("Internal membership: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("ownerMembershipId", response.body.membershipId);
+%}
+
+### 08. Internal: roles by identity in organization
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{ownerIdentityId}}/roles
+
+> {%
+client.test("Internal roles: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 09. Internal: permissions by identity in organization
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{ownerIdentityId}}/permissions
+
+> {%
+client.test("Internal permissions: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 10. Public: current user profile
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Users/me: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 11. Public: current user organizations
+GET {{baseUrl}}/api/users/me/organizations?status=Active
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Users/me/organizations: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 12. Public: current user access in organization
+GET {{baseUrl}}/api/users/me/access?organizationId={{orgId}}
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Users/me/access: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 13. Public: organization roles (system + custom)
+GET {{baseUrl}}/api/organizations/{{orgId}}/roles?includeSystem=true
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Organization roles: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 14. Public: create custom role
+POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "code": "{{customRoleCode1}}",
+  "name": "Team Lead",
+  "description": "Custom role for smoke test",
+  "permissionCodes": ["MEMBERS_LIST", "MEMBERS_READ"]
+}
+> {%
+client.test("Create custom role: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("customRoleId", response.body.roleId);
+%}
+
+### 15. Public: update custom role
+PUT {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{customRoleId}}
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "code": "{{customRoleCode2}}",
+  "name": "Team Manager",
+  "description": "Updated in smoke test",
+  "permissionCodes": ["MEMBERS_LIST", "MEMBERS_READ", "MEMBERS_UPDATE"]
+}
+> {%
+client.test("Update custom role: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 16. Public: delete custom role
+DELETE {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{customRoleId}}
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Delete custom role: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 17. Register invitee user
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "email": "{{inviteeEmail}}",
+  "password": "{{inviteePassword}}",
+  "firstName": "Invitee",
+  "lastName": "User",
+  "patronymic": "Smoke"
+}
+> {%
+client.test("Register invitee: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("inviteeUserId", response.body.userId);
+client.global.set("inviteeIdentityId", response.body.identityId);
+%}
+
+### 18. Get invitee token from Keycloak
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id={{publicClientId}}&username={{inviteeEmail}}&password={{inviteePassword}}
+> {%
+client.test("Invitee token: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("inviteeAccessToken", response.body.access_token);
+client.global.set("inviteeRefreshToken", response.body.refresh_token);
+%}
+
+### 19. Public: create invitation (for accept flow)
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["EMPLOYEE"],
+  "expiresAt": "{{expiresAt}}"
+}
+> {%
+client.test("Create invitation #1: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("invitationId1", response.body.invitationId);
+client.global.set("invitationToken1", response.body.invitationToken);
+%}
+
+### 20. Public: get invitation by token (anonymous)
+GET {{baseUrl}}/api/invitations/{{invitationToken1}}
+
+> {%
+client.test("Get invitation by token: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 21. Public: accept invitation by token
+POST {{baseUrl}}/api/invitations/{{invitationToken1}}/accept
+Authorization: Bearer {{inviteeAccessToken}}
+
+> {%
+client.test("Accept invitation: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 22. Internal: membership of invitee (to get membershipId)
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{inviteeIdentityId}}/membership
+
+> {%
+client.test("Internal invitee membership: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("inviteeMembershipId", response.body.membershipId);
+%}
+
+### 23. Public: members list
+GET {{baseUrl}}/api/organizations/{{orgId}}/members?status=Active
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Members list: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 24. Public: member by membershipId
+GET {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Member by id: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 25. Public: assign role to member
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}/roles
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["VIEWER"]
+}
+> {%
+client.test("Assign member role: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 26. Public: revoke role from member
+DELETE {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}/roles/VIEWER
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Revoke member role: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 27. Public: update member profile
+PATCH {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "department": "Engineering",
+  "title": "Developer"
+}
+> {%
+client.test("Update member: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 28. Public: deactivate member
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}/deactivate
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Deactivate member: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 29. Public: activate member
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}/activate
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Activate member: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 30. Public: invitations list (accepted)
+GET {{baseUrl}}/api/organizations/{{orgId}}/invitations?status=Accepted
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Invitations accepted list: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 31. Public: create invitation #2 (for revoke flow)
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["EMPLOYEE"],
+  "expiresAt": "{{expiresAt}}"
+}
+> {%
+client.test("Create invitation #2: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("invitationId2", response.body.invitationId);
+client.global.set("invitationToken2", response.body.invitationToken);
+%}
+
+### 32. Public: revoke invitation #2
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations/{{invitationId2}}/revoke
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Revoke invitation #2: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 33. Public: invitations list (revoked)
+GET {{baseUrl}}/api/organizations/{{orgId}}/invitations?status=Revoked
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Invitations revoked list: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 34. Public: delete member from organization
+DELETE {{baseUrl}}/api/organizations/{{orgId}}/members/{{inviteeMembershipId}}
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Delete member: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 35. Internal: organization delete in OrgMembershipService (cleanup)
+POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
+
+> {%
+client.test("Internal organization delete: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
