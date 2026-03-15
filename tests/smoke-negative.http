@@ -1,0 +1,334 @@
+@baseUrl = http://localhost:8080
+@keycloakUrl = http://localhost:8082
+@realm = organization-bookings
+@publicClientId = bookings-public-client
+@orgId = 22222222-2222-2222-2222-222222222222
+@runId = {{$timestamp}}
+@ownerEmail = owner_neg_{{runId}}@test.local
+@inviteeEmail = invitee_neg_{{runId}}@test.local
+@ownerPassword = Pass123!
+@inviteePassword = Pass123!
+@expiresAt = 2030-01-01T00:00:00Z
+@missingIdentityId = not-exists-identity-id
+@missingMembershipId = 99999999-9999-9999-9999-999999999999
+@missingRoleCode = ROLE_DOES_NOT_EXIST
+@customRoleCode = NEG_ROLE_{{runId}}
+
+### 01. Unauthorized: users/me without token -> 401
+GET {{baseUrl}}/api/users/me
+
+> {%
+client.test("Users/me without token: 401", function () {
+  client.assert(response.status === 401, "Expected 401");
+});
+%}
+
+### 02. Register owner
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "email": "{{ownerEmail}}",
+  "password": "{{ownerPassword}}",
+  "firstName": "Owner",
+  "lastName": "Negative",
+  "patronymic": "Smoke"
+}
+> {%
+client.test("Register owner: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negOwnerIdentityId", response.body.identityId);
+%}
+
+### 03. Owner token
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id={{publicClientId}}&username={{ownerEmail}}&password={{ownerPassword}}
+> {%
+client.test("Owner token: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negOwnerAccessToken", response.body.access_token);
+%}
+
+### 04. Internal create owner membership in org
+POST {{baseUrl}}/api/internal/organizations/owner
+Content-Type: application/json
+
+{
+  "organizationId": "{{orgId}}",
+  "ownerIdentityId": "{{negOwnerIdentityId}}"
+}
+> {%
+client.test("Create owner in org: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 05. Register invitee
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "email": "{{inviteeEmail}}",
+  "password": "{{inviteePassword}}",
+  "firstName": "Invitee",
+  "lastName": "Negative",
+  "patronymic": "Smoke"
+}
+> {%
+client.test("Register invitee: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negInviteeIdentityId", response.body.identityId);
+%}
+
+### 06. Invitee token
+POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id={{publicClientId}}&username={{inviteeEmail}}&password={{inviteePassword}}
+> {%
+client.test("Invitee token: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negInviteeAccessToken", response.body.access_token);
+%}
+
+### 07. Owner creates invitation for invitee
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["EMPLOYEE"],
+  "expiresAt": "{{expiresAt}}"
+}
+> {%
+client.test("Create invitation for invitee: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negInvitationId", response.body.invitationId);
+client.global.set("negInvitationToken", response.body.invitationToken);
+%}
+
+### 08. Invitee accepts invitation
+POST {{baseUrl}}/api/invitations/{{negInvitationToken}}/accept
+Authorization: Bearer {{negInviteeAccessToken}}
+
+> {%
+client.test("Accept invitation first time: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 09. Internal: get invitee membership
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{negInviteeIdentityId}}/membership
+
+> {%
+client.test("Get invitee membership: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negInviteeMembershipId", response.body.membershipId);
+%}
+
+### 10. Internal: get owner membership
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{negOwnerIdentityId}}/membership
+
+> {%
+client.test("Get owner membership: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negOwnerMembershipId", response.body.membershipId);
+%}
+
+### 11. Unauthorized: members list without token -> 401
+GET {{baseUrl}}/api/organizations/{{orgId}}/members
+
+> {%
+client.test("Members without token: 401", function () {
+  client.assert(response.status === 401, "Expected 401");
+});
+%}
+
+### 12. Forbidden: invitee cannot create custom role -> 403
+POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
+Authorization: Bearer {{negInviteeAccessToken}}
+Content-Type: application/json
+
+{
+  "code": "{{customRoleCode}}",
+  "name": "No Access Role",
+  "description": "Should be forbidden",
+  "permissionCodes": ["MEMBERS_LIST"]
+}
+> {%
+client.test("Invitee create custom role forbidden: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
+### 13. Forbidden: invitee cannot list members -> 403
+GET {{baseUrl}}/api/organizations/{{orgId}}/members
+Authorization: Bearer {{negInviteeAccessToken}}
+
+> {%
+client.test("Invitee list members forbidden: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
+### 14. Bad request: invalid status in users/me/organizations -> 400
+GET {{baseUrl}}/api/users/me/organizations?status=UnknownStatus
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Users/me/organizations invalid status: 400", function () {
+  client.assert(response.status === 400, "Expected 400");
+});
+%}
+
+### 15. Bad request: invalid status in members list -> 400
+GET {{baseUrl}}/api/organizations/{{orgId}}/members?status=UnknownStatus
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Members invalid status: 400", function () {
+  client.assert(response.status === 400, "Expected 400");
+});
+%}
+
+### 16. Not found: internal user by unknown identity -> 404
+GET {{baseUrl}}/api/internal/users/by-identity/{{missingIdentityId}}
+
+> {%
+client.test("Internal unknown identity: 404", function () {
+  client.assert(response.status === 404, "Expected 404");
+});
+%}
+
+### 17. Not found: member by unknown membershipId -> 404
+GET {{baseUrl}}/api/organizations/{{orgId}}/members/{{missingMembershipId}}
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Unknown membership: 404", function () {
+  client.assert(response.status === 404, "Expected 404");
+});
+%}
+
+### 18. Conflict: duplicate owner create -> 409
+POST {{baseUrl}}/api/internal/organizations/owner
+Content-Type: application/json
+
+{
+  "organizationId": "{{orgId}}",
+  "ownerIdentityId": "{{negOwnerIdentityId}}"
+}
+> {%
+client.test("Duplicate owner create: 409", function () {
+  client.assert(response.status === 409, "Expected 409");
+});
+%}
+
+### 19. Conflict: accept same invitation second time -> 409
+POST {{baseUrl}}/api/invitations/{{negInvitationToken}}/accept
+Authorization: Bearer {{negInviteeAccessToken}}
+
+> {%
+client.test("Accept invitation second time: 409", function () {
+  client.assert(response.status === 409, "Expected 409");
+});
+%}
+
+### 20. Conflict: revoke already accepted invitation -> 409
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations/{{negInvitationId}}/revoke
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Revoke accepted invitation: 409", function () {
+  client.assert(response.status === 409, "Expected 409");
+});
+%}
+
+### 21. Not found: invitation by unknown token -> 404
+GET {{baseUrl}}/api/invitations/token-does-not-exist
+
+> {%
+client.test("Invitation by unknown token: 404", function () {
+  client.assert(response.status === 404, "Expected 404");
+});
+%}
+
+### 22. Not found: accept unknown invitation token -> 404
+POST {{baseUrl}}/api/invitations/token-does-not-exist/accept
+Authorization: Bearer {{negInviteeAccessToken}}
+
+> {%
+client.test("Accept unknown invitation token: 404", function () {
+  client.assert(response.status === 404, "Expected 404");
+});
+%}
+
+### 23. Create custom role for role-in-use conflict test
+POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "code": "{{customRoleCode}}",
+  "name": "Role In Use",
+  "description": "Will be assigned to member",
+  "permissionCodes": ["MEMBERS_LIST"]
+}
+> {%
+client.test("Create custom role for in-use test: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("negCustomRoleId", response.body.roleId);
+%}
+
+### 24. Assign custom role to invitee member
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["{{customRoleCode}}"]
+}
+> {%
+client.test("Assign custom role to member: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 25. Conflict: delete custom role in use -> 409
+DELETE {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{negCustomRoleId}}
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Delete custom role in use: 409", function () {
+  client.assert(response.status === 409, "Expected 409");
+});
+%}
+
+### 26. Not found: revoke unknown role from member -> 404
+DELETE {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles/{{missingRoleCode}}
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Revoke unknown role code: 404", function () {
+  client.assert(response.status === 404, "Expected 404");
+});
+%}
+
+### 27. Cleanup org data in OrgMembershipService
+POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
+
+> {%
+client.test("Cleanup org: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
