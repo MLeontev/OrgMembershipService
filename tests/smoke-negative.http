@@ -182,7 +182,17 @@ client.test("Invitee list members forbidden: 403", function () {
 });
 %}
 
-### 14. Bad request: invalid status in users/me/organizations -> 400
+### 14. Forbidden: invitee cannot read permissions catalog -> 403
+GET {{baseUrl}}/api/organizations/{{orgId}}/permissions
+Authorization: Bearer {{negInviteeAccessToken}}
+
+> {%
+client.test("Invitee permissions catalog forbidden: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
+### 15. Bad request: invalid status in users/me/organizations -> 400
 GET {{baseUrl}}/api/users/me/organizations?status=UnknownStatus
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -192,7 +202,7 @@ client.test("Users/me/organizations invalid status: 400", function () {
 });
 %}
 
-### 15. Bad request: invalid status in members list -> 400
+### 16. Bad request: invalid status in members list -> 400
 GET {{baseUrl}}/api/organizations/{{orgId}}/members?status=UnknownStatus
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -202,7 +212,7 @@ client.test("Members invalid status: 400", function () {
 });
 %}
 
-### 16. Not found: internal user by unknown identity -> 404
+### 17. Not found: internal user by unknown identity -> 404
 GET {{baseUrl}}/api/internal/users/by-identity/{{missingIdentityId}}
 
 > {%
@@ -211,7 +221,7 @@ client.test("Internal unknown identity: 404", function () {
 });
 %}
 
-### 17. Not found: member by unknown membershipId -> 404
+### 18. Not found: member by unknown membershipId -> 404
 GET {{baseUrl}}/api/organizations/{{orgId}}/members/{{missingMembershipId}}
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -221,7 +231,7 @@ client.test("Unknown membership: 404", function () {
 });
 %}
 
-### 18. Conflict: duplicate owner create -> 409
+### 19. Conflict: duplicate owner create -> 409
 POST {{baseUrl}}/api/internal/organizations/owner
 Content-Type: application/json
 
@@ -235,7 +245,7 @@ client.test("Duplicate owner create: 409", function () {
 });
 %}
 
-### 19. Conflict: accept same invitation second time -> 409
+### 20. Conflict: accept same invitation second time -> 409
 POST {{baseUrl}}/api/invitations/{{negInvitationToken}}/accept
 Authorization: Bearer {{negInviteeAccessToken}}
 
@@ -245,7 +255,7 @@ client.test("Accept invitation second time: 409", function () {
 });
 %}
 
-### 20. Conflict: revoke already accepted invitation -> 409
+### 21. Conflict: revoke already accepted invitation -> 409
 POST {{baseUrl}}/api/organizations/{{orgId}}/invitations/{{negInvitationId}}/revoke
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -255,7 +265,7 @@ client.test("Revoke accepted invitation: 409", function () {
 });
 %}
 
-### 21. Not found: invitation by unknown token -> 404
+### 22. Not found: invitation by unknown token -> 404
 GET {{baseUrl}}/api/invitations/token-does-not-exist
 
 > {%
@@ -264,7 +274,7 @@ client.test("Invitation by unknown token: 404", function () {
 });
 %}
 
-### 22. Not found: accept unknown invitation token -> 404
+### 23. Not found: accept unknown invitation token -> 404
 POST {{baseUrl}}/api/invitations/token-does-not-exist/accept
 Authorization: Bearer {{negInviteeAccessToken}}
 
@@ -274,7 +284,7 @@ client.test("Accept unknown invitation token: 404", function () {
 });
 %}
 
-### 23. Create custom role for role-in-use conflict test
+### 24. Create custom role for role-in-use conflict test
 POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
 Authorization: Bearer {{negOwnerAccessToken}}
 Content-Type: application/json
@@ -293,7 +303,7 @@ client.test("Create custom role for in-use test: 200", function () {
 client.global.set("negCustomRoleId", response.body.roleId);
 %}
 
-### 24. Bad request: create custom role with negative priority -> 400
+### 25. Bad request: create custom role with negative priority -> 400
 POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
 Authorization: Bearer {{negOwnerAccessToken}}
 Content-Type: application/json
@@ -311,7 +321,7 @@ client.test("Create custom role with negative priority: 400", function () {
 });
 %}
 
-### 25. Assign custom role to invitee member
+### 26. Assign custom role to invitee member
 POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles
 Authorization: Bearer {{negOwnerAccessToken}}
 Content-Type: application/json
@@ -325,7 +335,7 @@ client.test("Assign custom role to member: 200", function () {
 });
 %}
 
-### 26. Conflict: delete custom role in use -> 409
+### 27. Conflict: delete custom role in use -> 409
 DELETE {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{negCustomRoleId}}
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -335,7 +345,7 @@ client.test("Delete custom role in use: 409", function () {
 });
 %}
 
-### 27. Not found: revoke unknown role from member -> 404
+### 28. Not found: revoke unknown role from member -> 404
 DELETE {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles/{{missingRoleCode}}
 Authorization: Bearer {{negOwnerAccessToken}}
 
@@ -345,7 +355,7 @@ client.test("Revoke unknown role code: 404", function () {
 });
 %}
 
-### 28. Cleanup org data in OrgMembershipService
+### 29. Cleanup org data in OrgMembershipService
 POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
 
 > {%

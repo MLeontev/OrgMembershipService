@@ -53,7 +53,13 @@ internal class AcceptInvitationByTokenCommandHandler(
         }
         else
         {
-            membership.Activate();
+            if (membership is { Status: MembershipStatus.Removed, RoleAssignments.Count: > 0 })
+            {
+                dbContext.MembershipRoles.RemoveRange(membership.RoleAssignments);
+                membership.ClearRoleAssignments();
+            }
+
+            membership.ReactivateByInvitation();
         }
 
         foreach (var roleId in roleIds)

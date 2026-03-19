@@ -82,6 +82,27 @@ public class Membership
         Status = MembershipStatus.Active;
     }
 
+    public void ReactivateByInvitation()
+    {
+        if (Status == MembershipStatus.Active)
+            return;
+
+        var wasRemoved = Status == MembershipStatus.Removed;
+
+        Status = MembershipStatus.Active;
+
+        if (!wasRemoved)
+            return;
+
+        RemovedAt = null;
+        JoinedAt = DateTimeOffset.UtcNow;
+    }
+
+    public void ClearRoleAssignments()
+    {
+        _roleAssignments.Clear();
+    }
+
     public void Remove()
     {
         if (Status == MembershipStatus.Removed)

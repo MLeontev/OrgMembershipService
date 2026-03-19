@@ -43,6 +43,28 @@ public class OrganizationsController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// Возвращает каталог доступных прав
+    /// </summary>
+    /// <param name="organizationId">Идентификатор организации</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Список прав для настройки ролей</returns>
+    [Authorize]
+    [HttpGet("permissions")]
+    [ProducesResponseType(typeof(PermissionsCatalogDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PermissionsCatalogDto>> GetPermissionsCatalog(
+        [FromRoute] Guid organizationId,
+        CancellationToken cancellationToken)
+    {
+        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
+        var permissions = await sender.Send(new GetPermissionsCatalogQuery(), cancellationToken);
+        return Ok(permissions);
+    }
+
+    /// <summary>
     /// Создает кастомную роль организации
     /// </summary>
     /// <param name="organizationId">Идентификатор организации</param>

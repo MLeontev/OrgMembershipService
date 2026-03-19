@@ -163,7 +163,20 @@ client.test("Organization roles: 200", function () {
 });
 %}
 
-### 14. Public: create custom role
+### 14. Public: organization permissions catalog
+GET {{baseUrl}}/api/organizations/{{orgId}}/permissions
+Authorization: Bearer {{ownerAccessToken}}
+
+> {%
+client.test("Organization permissions catalog: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.test("Organization permissions catalog: not empty", function () {
+  client.assert(response.body.permissions.length > 0, "Expected non-empty permissions list");
+});
+%}
+
+### 15. Public: create custom role
 POST {{baseUrl}}/api/organizations/{{orgId}}/roles/custom
 Authorization: Bearer {{ownerAccessToken}}
 Content-Type: application/json
@@ -185,7 +198,7 @@ client.test("Create custom role: priority saved", function () {
 client.global.set("customRoleId", response.body.roleId);
 %}
 
-### 15. Public: update custom role
+### 16. Public: update custom role
 PUT {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{customRoleId}}
 Authorization: Bearer {{ownerAccessToken}}
 Content-Type: application/json
@@ -205,7 +218,7 @@ client.test("Update custom role: priority unchanged", function () {
 });
 %}
 
-### 16. Public: delete custom role
+### 17. Public: delete custom role
 DELETE {{baseUrl}}/api/organizations/{{orgId}}/roles/custom/{{customRoleId}}
 Authorization: Bearer {{ownerAccessToken}}
 
@@ -215,7 +228,7 @@ client.test("Delete custom role: 200", function () {
 });
 %}
 
-### 17. Register invitee user
+### 18. Register invitee user
 POST {{baseUrl}}/api/users/register
 Content-Type: application/json
 
@@ -234,7 +247,7 @@ client.global.set("inviteeUserId", response.body.userId);
 client.global.set("inviteeIdentityId", response.body.identityId);
 %}
 
-### 18. Get invitee token from Keycloak
+### 19. Get invitee token from Keycloak
 POST {{keycloakUrl}}/realms/{{realm}}/protocol/openid-connect/token
 Content-Type: application/x-www-form-urlencoded
 
@@ -247,7 +260,7 @@ client.global.set("inviteeAccessToken", response.body.access_token);
 client.global.set("inviteeRefreshToken", response.body.refresh_token);
 %}
 
-### 19. Public: create invitation (for accept flow)
+### 20. Public: create invitation (for accept flow)
 POST {{baseUrl}}/api/organizations/{{orgId}}/invitations
 Authorization: Bearer {{ownerAccessToken}}
 Content-Type: application/json
@@ -264,7 +277,7 @@ client.global.set("invitationId1", response.body.invitationId);
 client.global.set("invitationToken1", response.body.invitationToken);
 %}
 
-### 20. Public: get invitation by token (anonymous)
+### 21. Public: get invitation by token (anonymous)
 GET {{baseUrl}}/api/invitations/{{invitationToken1}}
 
 > {%
@@ -273,7 +286,7 @@ client.test("Get invitation by token: 200", function () {
 });
 %}
 
-### 21. Public: accept invitation by token
+### 22. Public: accept invitation by token
 POST {{baseUrl}}/api/invitations/{{invitationToken1}}/accept
 Authorization: Bearer {{inviteeAccessToken}}
 
@@ -283,7 +296,7 @@ client.test("Accept invitation: 200", function () {
 });
 %}
 
-### 22. Internal: membership of invitee (to get membershipId)
+### 23. Internal: membership of invitee (to get membershipId)
 GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{inviteeIdentityId}}/membership
 
 > {%
@@ -429,7 +442,49 @@ client.test("Delete member: 200", function () {
 });
 %}
 
-### 35. Internal: organization delete in OrgMembershipService (cleanup)
+### 35. Public: create invitation #3 (reactivate removed member)
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations
+Authorization: Bearer {{ownerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["EMPLOYEE"],
+  "expiresAt": "{{expiresAt}}"
+}
+> {%
+client.test("Create invitation #3: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.global.set("invitationId3", response.body.invitationId);
+client.global.set("invitationToken3", response.body.invitationToken);
+%}
+
+### 36. Public: accept invitation #3 by removed user
+POST {{baseUrl}}/api/invitations/{{invitationToken3}}/accept
+Authorization: Bearer {{inviteeAccessToken}}
+
+> {%
+client.test("Accept invitation #3: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+%}
+
+### 37. Internal: membership of invitee is active again
+GET {{baseUrl}}/api/internal/organizations/{{orgId}}/users/{{inviteeIdentityId}}/membership
+
+> {%
+client.test("Invitee membership after re-invite: 200", function () {
+  client.assert(response.status === 200, "Expected 200");
+});
+client.test("Invitee membership after re-invite: status active", function () {
+  client.assert(response.body.status === "Active", "Expected status=Active");
+});
+client.test("Invitee membership after re-invite: removedAt cleared", function () {
+  client.assert(response.body.removedAt === null, "Expected removedAt=null");
+});
+%}
+
+### 38. Internal: organization delete in OrgMembershipService (cleanup)
 POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
 
 > {%
