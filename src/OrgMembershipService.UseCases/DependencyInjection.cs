@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssembly(typeof(DependencyInjection).Assembly, includeInternalTypes: true);
         
         services.AddScoped<IUserIdentityResolver, UserIdentityResolver>();
+        services.AddScoped<IAccessPolicyService, AccessPolicyService>();
 
         return services;
     }

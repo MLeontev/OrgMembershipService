@@ -24,6 +24,10 @@ internal class AssignOrganizationMemberRolesCommandValidator : AbstractValidator
 {
     public AssignOrganizationMemberRolesCommandValidator()
     {
+        RuleFor(x => x.AssignedByIdentityId)
+            .NotEmpty()
+            .WithMessage("Идентификатор назначающего пользователя обязателен");
+
         RuleFor(x => x.RoleCodes)
             .NotNull()
             .WithMessage("Список ролей обязателен")
@@ -38,7 +42,8 @@ internal class AssignOrganizationMemberRolesCommandValidator : AbstractValidator
 
 internal class AssignOrganizationMemberRolesCommandHandler(
     IDbContext dbContext,
-    IUserIdentityResolver identityResolver) : IRequestHandler<AssignOrganizationMemberRolesCommand>
+    IUserIdentityResolver identityResolver,
+    IAccessPolicyService accessPolicy) : IRequestHandler<AssignOrganizationMemberRolesCommand>
 {
     public async Task Handle(AssignOrganizationMemberRolesCommand request, CancellationToken cancellationToken)
     {
@@ -63,7 +68,7 @@ internal class AssignOrganizationMemberRolesCommandHandler(
             .Where(x =>
                 requestedRoleCodes.Contains(x.Code) &&
                 (x.OrganizationId == null || x.OrganizationId == request.OrganizationId))
-            .Select(x => new { x.Id, x.Code, x.OrganizationId })
+            .Select(x => new { x.Id, x.Code, x.OrganizationId, x.Priority })
             .ToListAsync(cancellationToken);
 
         var selectedRoles = roleCandidates
@@ -83,6 +88,15 @@ internal class AssignOrganizationMemberRolesCommandHandler(
 
         if (missingRoleCodes.Count > 0)
             throw new NotFoundException("ROLE_NOT_FOUND", $"Роли не найдены: {string.Join(", ", missingRoleCodes)}");
+
+        await accessPolicy.EnsureCanAssignRolesAsync(
+            request.OrganizationId,
+            assignedByUserId,
+            membership,
+            selectedRoles
+                .Select(x => new AccessRoleCandidate(x.Code, x.Priority))
+                .ToList(),
+            cancellationToken);
 
         var existingRoleIds = await dbContext.MembershipRoles
             .AsNoTracking()

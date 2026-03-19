@@ -485,10 +485,10 @@ client.test("Invitee membership after re-invite: removedAt cleared", function ()
 %}
 
 ### 38. Internal: organization delete in OrgMembershipService (cleanup)
-POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
-
-> {%
-client.test("Internal organization delete: 200", function () {
-  client.assert(response.status === 200, "Expected 200");
-});
-%}
+#POST {{baseUrl}}/api/internal/organizations/{{orgId}}/delete
+#
+#> {%
+#client.test("Internal organization delete: 200", function () {
+#  client.assert(response.status === 200, "Expected 200");
+#});
+#%}

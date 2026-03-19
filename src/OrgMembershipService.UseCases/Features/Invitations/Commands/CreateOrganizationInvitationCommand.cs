@@ -38,6 +38,10 @@ internal class CreateOrganizationInvitationCommandValidator : AbstractValidator<
 {
     public CreateOrganizationInvitationCommandValidator()
     {
+        RuleFor(x => x.CreatedByIdentityId)
+            .NotEmpty()
+            .WithMessage("Идентификатор пользователя обязателен");
+
         RuleFor(x => x.RoleCodes)
             .NotNull()
             .WithMessage("Список ролей обязателен")
@@ -56,7 +60,8 @@ internal class CreateOrganizationInvitationCommandValidator : AbstractValidator<
 
 internal class CreateOrganizationInvitationCommandHandler(
     IDbContext dbContext,
-    IUserIdentityResolver identityResolver) : IRequestHandler<CreateOrganizationInvitationCommand, CreateOrganizationInvitationDto>
+    IUserIdentityResolver identityResolver,
+    IAccessPolicyService accessPolicy) : IRequestHandler<CreateOrganizationInvitationCommand, CreateOrganizationInvitationDto>
 {
     public async Task<CreateOrganizationInvitationDto> Handle(CreateOrganizationInvitationCommand request, CancellationToken cancellationToken)
     {
@@ -73,7 +78,7 @@ internal class CreateOrganizationInvitationCommandHandler(
             .Where(x =>
                 requestedRoleCodes.Contains(x.Code) &&
                 (x.OrganizationId == null || x.OrganizationId == request.OrganizationId))
-            .Select(x => new { x.Id, x.Code, x.OrganizationId })
+            .Select(x => new { x.Id, x.Code, x.OrganizationId, x.Priority })
             .ToListAsync(cancellationToken);
 
         var selectedRoles = roleCandidates
@@ -93,6 +98,14 @@ internal class CreateOrganizationInvitationCommandHandler(
 
         if (missingRoleCodes.Count > 0)
             throw new NotFoundException("ROLE_NOT_FOUND", $"Роли не найдены: {string.Join(", ", missingRoleCodes)}");
+
+        await accessPolicy.EnsureCanCreateInvitationAsync(
+            request.OrganizationId,
+            createdByUserId,
+            selectedRoles
+                .Select(x => new AccessRoleCandidate(x.Code, x.Priority))
+                .ToList(),
+            cancellationToken);
 
         var token = GenerateToken();
         var tokenHash = ComputeSha256(token);

@@ -270,12 +270,13 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] string roleCode,
         CancellationToken cancellationToken)
     {
-        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_REVOKE", cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "ROLES_REVOKE", cancellationToken);
 
         await sender.Send(
             new RevokeOrganizationMemberRoleCommand(
                 organizationId,
                 membershipId,
+                identityId,
                 roleCode),
             cancellationToken);
 
@@ -304,12 +305,13 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromBody] UpdateOrganizationMemberRequest request,
         CancellationToken cancellationToken)
     {
-        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_UPDATE", cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_UPDATE", cancellationToken);
 
         await sender.Send(
             new UpdateOrganizationMemberCommand(
                 organizationId,
                 membershipId,
+                identityId,
                 request.Department,
                 request.Title),
             cancellationToken);
@@ -337,8 +339,8 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
-        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
-        await sender.Send(new DeactivateOrganizationMemberCommand(organizationId, membershipId), cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
+        await sender.Send(new DeactivateOrganizationMemberCommand(organizationId, membershipId, identityId), cancellationToken);
         return Ok();
     }
 
@@ -362,8 +364,8 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
-        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
-        await sender.Send(new ActivateOrganizationMemberCommand(organizationId, membershipId), cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
+        await sender.Send(new ActivateOrganizationMemberCommand(organizationId, membershipId, identityId), cancellationToken);
         return Ok();
     }
 
@@ -386,8 +388,8 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
-        await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_REMOVE", cancellationToken);
-        await sender.Send(new RemoveOrganizationMemberCommand(organizationId, membershipId), cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_REMOVE", cancellationToken);
+        await sender.Send(new RemoveOrganizationMemberCommand(organizationId, membershipId, identityId), cancellationToken);
         return Ok();
     }
 }

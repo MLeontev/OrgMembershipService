@@ -145,6 +145,59 @@ client.test("Get owner membership: 200", function () {
 client.global.set("negOwnerMembershipId", response.body.membershipId);
 %}
 
+### 10a. Forbidden: owner cannot deactivate self -> 403
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{negOwnerMembershipId}}/deactivate
+Authorization: Bearer {{negOwnerAccessToken}}
+
+> {%
+client.test("Owner deactivate self forbidden: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
+### 10b. Forbidden: owner cannot change own roles -> 403
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{negOwnerMembershipId}}/roles
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["VIEWER"]
+}
+> {%
+client.test("Owner assign role to self forbidden: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
+### 10c. Forbidden: owner cannot assign role with equal priority -> 403
+POST {{baseUrl}}/api/organizations/{{orgId}}/members/{{negInviteeMembershipId}}/roles
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["ORG_OWNER"]
+}
+> {%
+client.test("Owner assign ORG_OWNER forbidden by priority: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
+### 10d. Forbidden: owner cannot create invitation with ORG_OWNER role -> 403
+POST {{baseUrl}}/api/organizations/{{orgId}}/invitations
+Authorization: Bearer {{negOwnerAccessToken}}
+Content-Type: application/json
+
+{
+  "roleCodes": ["ORG_OWNER"],
+  "expiresAt": "{{expiresAt}}"
+}
+> {%
+client.test("Owner create invitation with ORG_OWNER forbidden by priority: 403", function () {
+  client.assert(response.status === 403, "Expected 403");
+});
+%}
+
 ### 11. Unauthorized: members list without token -> 401
 GET {{baseUrl}}/api/organizations/{{orgId}}/members
 
