@@ -6,6 +6,7 @@ using System.Reflection;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
+var swaggerBasePath = builder.Configuration["Swagger:BasePath"]?.Trim();
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
@@ -59,7 +60,26 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseSwagger();
+app.UseSwagger(options =>
+{
+    if (string.IsNullOrWhiteSpace(swaggerBasePath))
+        return;
+
+    var normalizedBasePath = swaggerBasePath.StartsWith("/")
+        ? swaggerBasePath
+        : $"/{swaggerBasePath}";
+
+    options.PreSerializeFilters.Add((swaggerDocument, httpRequest) =>
+    {
+        swaggerDocument.Servers =
+        [
+            new OpenApiServer
+            {
+                Url = $"{httpRequest.Scheme}://{httpRequest.Host}{normalizedBasePath}"
+            }
+        ];
+    });
+});
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("./v1/swagger.json", "OrgMembershipService API v1");
