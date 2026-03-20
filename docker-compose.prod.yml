@@ -1,0 +1,15 @@
+﻿services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.5.6
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+
+      KC_HOSTNAME: https://keycloak.vts-platform.ru
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+    command:
+      - start
+      - --import-realm
+    ports:
+      - "127.0.0.1:8082:8080"
