@@ -28,6 +28,18 @@ internal class CreateOrganizationOwnerCommandHandler(
         
         if (!userExists)
             throw new NotFoundException("USER_NOT_FOUND", "Пользователь не найден");
+
+        var ownerAlreadyExists = await dbContext.MembershipRoles
+            .AsNoTracking()
+            .AnyAsync(
+                x =>
+                    x.Membership.OrganizationId == request.OrganizationId &&
+                    x.Role.Code == "ORG_OWNER" &&
+                    x.Role.OrganizationId == null,
+                cancellationToken);
+
+        if (ownerAlreadyExists)
+            throw new ConflictException("ORGANIZATION_OWNER_ALREADY_EXISTS", "Владелец организации уже назначен");
         
         var membershipExists = await dbContext.Memberships
             .AsNoTracking()
