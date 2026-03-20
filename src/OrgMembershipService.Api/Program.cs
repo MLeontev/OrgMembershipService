@@ -62,7 +62,7 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI(options =>
 {
-    options.SwaggerEndpoint("/swagger/v1/swagger.json", "OrgMembershipService API v1");
+    options.SwaggerEndpoint("./v1/swagger.json", "OrgMembershipService API v1");
 });
 
 app.MapOpenApi();
