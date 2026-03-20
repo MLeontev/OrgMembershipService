@@ -59,7 +59,22 @@ var app = builder.Build();
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-app.UseSwagger();
+var swaggerBasePath = "/api/users";
+
+app.UseSwagger(options =>
+{
+    options.PreSerializeFilters.Add((swaggerDocument, httpRequest) =>
+    {
+        swaggerDocument.Servers =
+        [
+            new OpenApiServer
+            {
+                Url = swaggerBasePath
+            }
+        ];
+    });
+});
+
 app.UseSwaggerUI(options =>
 {
     options.SwaggerEndpoint("./v1/swagger.json", "OrgMembershipService API v1");
