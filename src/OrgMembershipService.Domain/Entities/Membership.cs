@@ -82,7 +82,7 @@ public class Membership
         Status = MembershipStatus.Active;
     }
 
-    public void ReactivateByInvitation()
+    public void Reactivate()
     {
         if (Status == MembershipStatus.Active)
             return;

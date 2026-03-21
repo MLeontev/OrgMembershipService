@@ -59,7 +59,7 @@ internal class AcceptInvitationByTokenCommandHandler(
                 membership.ClearRoleAssignments();
             }
 
-            membership.ReactivateByInvitation();
+            membership.Reactivate();
         }
 
         foreach (var roleId in roleIds)

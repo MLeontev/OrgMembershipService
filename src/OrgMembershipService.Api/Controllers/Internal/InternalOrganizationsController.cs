@@ -34,6 +34,26 @@ public class InternalOrganizationsController(ISender sender) : ControllerBase
     }
 
     /// <summary>
+    /// Меняет владельца организации (перенос роли <c>ORG_OWNER</c> на нового владельца)
+    /// </summary>
+    /// <param name="command">Идентификатор организации и newOwnerIdentityId</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    [HttpPost("owner/change")]
+    [Consumes("application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ChangeOwner(
+        [FromBody] ChangeOrganizationOwnerCommand command,
+        CancellationToken cancellationToken)
+    {
+        await sender.Send(command, cancellationToken);
+        return Ok();
+    }
+
+    /// <summary>
     /// Удаляет данные организации в OrgMembershipService (членства, приглашения, кастомные роли)
     /// </summary>
     /// <param name="organizationId">Идентификатор организации</param>
