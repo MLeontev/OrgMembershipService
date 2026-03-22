@@ -11,7 +11,7 @@
       - ConnectionStrings__DefaultConnection=Host=users-db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
       - Authentication__TokenValidationParameters__ValidIssuers__2=${KEYCLOAK_ISSUER}
     depends_on:
-      db:
+      users-db:
         condition: service_healthy
     networks:
       - booking-network
