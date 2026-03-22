@@ -8,7 +8,7 @@
       - '8080:8080'
       - '8081:8081'
     environment:
-      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
+      - ConnectionStrings__DefaultConnection=Host=users-db-1;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};
       - Authentication__TokenValidationParameters__ValidIssuers__2=${KEYCLOAK_ISSUER}
     depends_on:
       db:
