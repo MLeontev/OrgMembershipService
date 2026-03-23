@@ -13,7 +13,7 @@ public static class ClaimsPrincipalExtensions
         {
             throw new UnauthorizedException(
                 "UNAUTHORIZED",
-                "В access токене отсутствует claim sub");
+                "Не удалось определить пользователя по access токену");
         }
         
         return identityId;

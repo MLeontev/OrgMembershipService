@@ -21,7 +21,7 @@ public static class ControllerPermissionExtensions
             cancellationToken);
 
         if (!result.Allowed)
-            throw new ForbiddenException("FORBIDDEN", $"Недостаточно прав: {permissionCode}");
+            throw new ForbiddenException("FORBIDDEN", "Недостаточно прав для выполнения этого действия");
 
         return identityId;
     }

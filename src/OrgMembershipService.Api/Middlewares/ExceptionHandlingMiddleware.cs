@@ -27,7 +27,7 @@ public class ExceptionHandlingMiddleware(
                 StatusCodes.Status400BadRequest,
                 new ErrorResponse(
                     Code: "VALIDATION_ERROR",
-                    Description: "Ошибка валидации",
+                    Description: "Проверьте корректность заполнения полей",
                     Errors: errors));
         }
         catch (AppException ex)
@@ -48,7 +48,7 @@ public class ExceptionHandlingMiddleware(
                 StatusCodes.Status500InternalServerError,
                 new ErrorResponse(
                     Code: "INTERNAL_ERROR",
-                    Description: "Непредвиденная ошибка"));
+                    Description: "Что-то пошло не так. Попробуйте еще раз позже"));
         }
     }
 

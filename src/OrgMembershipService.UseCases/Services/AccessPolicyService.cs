@@ -42,13 +42,13 @@ internal class AccessPolicyService(IDbContext dbContext) : IAccessPolicyService
         CancellationToken ct = default)
     {
         if (targetMembership.UserId == actorUserId)
-            throw new ForbiddenException("SELF_OPERATION_FORBIDDEN", $"Нельзя выполнять действие для себя: {actionCode}");
+            throw new ForbiddenException("SELF_OPERATION_FORBIDDEN", "Нельзя выполнять это действие для себя");
 
         var actorPriority = await GetActorMaxPriorityOrThrowAsync(organizationId, actorUserId, ct);
         var targetPriority = await GetMembershipMaxPriorityAsync(targetMembership.Id, ct) ?? int.MinValue;
 
         if (actorPriority <= targetPriority)
-            throw new ForbiddenException("INSUFFICIENT_ROLE_PRIORITY", $"Недостаточно приоритета для действия: {actionCode}");
+            throw new ForbiddenException("INSUFFICIENT_ROLE_PRIORITY", "Недостаточно прав для управления этим участником");
     }
 
     public async Task EnsureCanAssignRolesAsync(
@@ -65,7 +65,7 @@ internal class AccessPolicyService(IDbContext dbContext) : IAccessPolicyService
         var targetPriority = await GetMembershipMaxPriorityAsync(targetMembership.Id, ct) ?? int.MinValue;
 
         if (actorPriority <= targetPriority)
-            throw new ForbiddenException("INSUFFICIENT_ROLE_PRIORITY", "Недостаточно приоритета для управления ролями участника");
+            throw new ForbiddenException("INSUFFICIENT_ROLE_PRIORITY", "Недостаточно прав для управления ролями этого участника");
 
         EnsureRolePrioritiesAreLower(actorPriority, roleCandidates);
     }
@@ -123,6 +123,6 @@ internal class AccessPolicyService(IDbContext dbContext) : IAccessPolicyService
 
         throw new ForbiddenException(
             "ROLE_PRIORITY_FORBIDDEN",
-            $"Нельзя назначать роли с приоритетом не ниже собственного: {string.Join(", ", forbiddenRoleCodes)}");
+            $"Нельзя назначать роли с приоритетом не ниже вашего: {string.Join(", ", forbiddenRoleCodes)}");
     }
 }
