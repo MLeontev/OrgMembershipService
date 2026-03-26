@@ -37,7 +37,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
         [FromQuery] bool includeSystem,
         CancellationToken cancellationToken)
     {
-        await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
+        //await this.EnsurePermissionAsync(sender, organizationId, "ROLES_LIST", cancellationToken);
         var roles = await sender.Send(new GetOrganizationRolesQuery(organizationId, includeSystem), cancellationToken);
         return Ok(roles);
     }
