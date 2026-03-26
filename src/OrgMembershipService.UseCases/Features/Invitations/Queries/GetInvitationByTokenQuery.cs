@@ -24,13 +24,15 @@ public record GetInvitationByTokenQuery(string Token) : IRequest<InvitationByTok
 /// <param name="ExpiresAt">Дата и время окончания действия приглашения</param>
 /// <param name="CanAccept">Можно ли принять приглашение</param>
 /// <param name="RoleCodes">Коды ролей, назначаемых при принятии приглашения</param>
+/// <param name="RoleNames">Названия ролей, назначаемых при принятии приглашения</param>
 public record InvitationByTokenDto(
     Guid InvitationId,
     Guid OrganizationId,
     string Status,
     DateTimeOffset ExpiresAt,
     bool CanAccept,
-    IReadOnlyCollection<string> RoleCodes);
+    IReadOnlyCollection<string> RoleCodes,
+    IReadOnlyCollection<string> RoleNames);
 
 internal class GetInvitationByTokenQueryHandler(IDbContext dbContext) : IRequestHandler<GetInvitationByTokenQuery, InvitationByTokenDto>
 {
@@ -45,13 +47,21 @@ internal class GetInvitationByTokenQueryHandler(IDbContext dbContext) : IRequest
         if (invitation is null)
             throw new NotFoundException("INVITATION_NOT_FOUND", "Приглашение не найдено");
 
-        var roleCodes = await dbContext.InvitationRoles
+        var roles = await dbContext.InvitationRoles
             .AsNoTracking()
             .Where(x => x.InvitationId == invitation.Id)
-            .Select(x => x.Role.Code)
+            .Select(x => new { x.Role.Code, x.Role.Name })
             .Distinct()
-            .OrderBy(x => x)
+            .OrderBy(x => x.Code)
             .ToListAsync(cancellationToken);
+
+        var roleCodes = roles
+            .Select(x => x.Code)
+            .ToList();
+
+        var roleNames = roles
+            .Select(x => x.Name)
+            .ToList();
 
         var now = DateTimeOffset.UtcNow;
         var effectiveStatus = invitation.IsExpired(now)
@@ -64,7 +74,8 @@ internal class GetInvitationByTokenQueryHandler(IDbContext dbContext) : IRequest
             effectiveStatus.ToString(),
             invitation.ExpiresAt,
             effectiveStatus == InvitationStatus.Pending,
-            roleCodes);
+            roleCodes,
+            roleNames);
     }
 
     private static string ComputeSha256(string value)

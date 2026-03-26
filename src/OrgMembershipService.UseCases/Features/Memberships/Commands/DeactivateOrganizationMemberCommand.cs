@@ -12,7 +12,8 @@ namespace OrgMembershipService.Application.Features.Memberships.Commands;
 /// <param name="OrganizationId">Идентификатор организации</param>
 /// <param name="MembershipId">Идентификатор членства</param>
 /// <param name="ActorIdentityId">Идентификатор пользователя в Keycloak (sub из access токена)</param>
-public record DeactivateOrganizationMemberCommand(Guid OrganizationId, Guid MembershipId, string ActorIdentityId) : IRequest;
+public record DeactivateOrganizationMemberCommand(
+    Guid OrganizationId, Guid MembershipId, string ActorIdentityId) : IRequest;
 
 internal class DeactivateOrganizationMemberCommandHandler(
     IDbContext dbContext,

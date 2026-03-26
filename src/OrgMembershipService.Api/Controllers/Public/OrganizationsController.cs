@@ -325,7 +325,7 @@ public class OrganizationsController(ISender sender) : ControllerBase
     /// <param name="organizationId">Идентификатор организации</param>
     /// <param name="membershipId">Идентификатор членства</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [Authorize]
+    
     [HttpPost("members/{membershipId:guid}/deactivate")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
@@ -334,13 +334,19 @@ public class OrganizationsController(ISender sender) : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status500InternalServerError)]
+    
+    [Authorize]
     public async Task<IActionResult> DeactivateMember(
         [FromRoute] Guid organizationId,
         [FromRoute] Guid membershipId,
         CancellationToken cancellationToken)
     {
-        var identityId = await this.EnsurePermissionAsync(sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
-        await sender.Send(new DeactivateOrganizationMemberCommand(organizationId, membershipId, identityId), cancellationToken);
+        var identityId = await this.EnsurePermissionAsync(
+            sender, organizationId, "MEMBERS_DEACTIVATE", cancellationToken);
+        
+        await sender.Send(new DeactivateOrganizationMemberCommand(
+            organizationId, membershipId, identityId), cancellationToken);
+        
         return Ok();
     }
 
